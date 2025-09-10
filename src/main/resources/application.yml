@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: thesis-flow
+  datasource:
+    url: jdbc:postgresql://localhost:5432/thesis_flow
+    username: thesis_flow_owner
+    password: owner
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+server:
+  port: 8080
