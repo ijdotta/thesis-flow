@@ -1,0 +1,10 @@
+package ar.edu.uns.cs.thesisflow.projects.model
+
+enum class ProjectType {
+    THESIS,
+    FINAL_PROJECT
+}
+
+enum class ProjectSubType {
+    // TODO: add subtypes
+}
