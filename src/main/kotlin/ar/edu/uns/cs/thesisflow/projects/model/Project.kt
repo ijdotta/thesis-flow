@@ -24,7 +24,7 @@ class Project(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
     @Column(nullable = false, unique = true, updatable = false)
-    var uuid: UUID = UUID.randomUUID(),
+    var publicId: UUID = UUID.randomUUID(),
     @Column(nullable = false)
     var title: String,
     @Column(nullable = false)

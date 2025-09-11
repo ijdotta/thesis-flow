@@ -10,7 +10,7 @@ import java.util.UUID
 class Person(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
-    var uuid: UUID = UUID.randomUUID(),
+    var publicId: UUID = UUID.randomUUID(),
     var name: String,
     var lastname: String,
 )
