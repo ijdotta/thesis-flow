@@ -14,7 +14,7 @@ import java.util.UUID
 class Career(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
-    @Column(nullable = false, unique = true, updatable = false)
+    @Column(name = "public_id", nullable = false, unique = true, updatable = false)
     var publicId: UUID = UUID.randomUUID(),
     @Column(nullable = false, unique = true)
     var name: String,

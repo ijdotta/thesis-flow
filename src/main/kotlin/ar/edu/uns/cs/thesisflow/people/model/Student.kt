@@ -16,7 +16,7 @@ import java.util.UUID
 class Student(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
-    @Column(nullable = false, unique = true, updatable = false)
+    @Column(name = "public_id", nullable = false, unique = true, updatable = false)
     var publicId: UUID = UUID.randomUUID(),
     @ManyToOne(fetch = FetchType.LAZY)
     var person: Person,

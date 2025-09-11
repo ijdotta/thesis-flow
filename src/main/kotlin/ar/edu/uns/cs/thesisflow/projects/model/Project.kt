@@ -23,7 +23,7 @@ import java.util.UUID
 class Project(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
-    @Column(nullable = false, unique = true, updatable = false)
+    @Column(name = "public_id", nullable = false, unique = true, updatable = false)
     var publicId: UUID = UUID.randomUUID(),
     @Column(nullable = false)
     var title: String,
@@ -39,10 +39,8 @@ class Project(
     var initialSubmission: Instant = Instant.now(),
     @Column(nullable = true)
     var completion: Instant? = null,
-    @Column(nullable = true)
     @ManyToOne(fetch = FetchType.LAZY)
     var applicationDomain: ApplicationDomain,
-    @Column(nullable = false)
     @ManyToMany(fetch = FetchType.LAZY)
     var tags: MutableSet<Tag> = mutableSetOf(),
     @Column(nullable = false)
