@@ -14,13 +14,9 @@ class ProjectParticipant(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, updatable = false)
     var project: Project,
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-        name = "person_public_id",
-        referencedColumnName = "public_id",
-        nullable = false,
-        updatable = false,
-    )
+    @JoinColumn(nullable = false, updatable = false)
     var person: Person,
 )
