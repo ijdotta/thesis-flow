@@ -13,9 +13,9 @@ import java.util.UUID
 @Table(indexes = [Index(name = "public_id", columnList = "public_id")])
 class Career(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long = 0,
+    var id: Long? = null,
     @Column(name = "public_id", nullable = false, unique = true, updatable = false)
-    var publicId: UUID = UUID.randomUUID(),
+    var publicId: UUID? = UUID.randomUUID(),
     @Column(nullable = false, unique = true)
     var name: String,
 )
