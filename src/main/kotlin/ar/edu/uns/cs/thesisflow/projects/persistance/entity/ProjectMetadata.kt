@@ -6,5 +6,6 @@ enum class ProjectType {
 }
 
 enum class ProjectSubType {
-    // TODO: add subtypes
+    TYPE_1,
+    TYPE_2,
 }

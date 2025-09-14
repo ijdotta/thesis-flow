@@ -13,7 +13,7 @@ import java.util.UUID
 @Table(indexes = [Index(name = "public_id", columnList = "public_id")])
 class Person(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long,
+    var id: Long = 0,
     @Column(name = "public_id", nullable = false, unique = true)
     var publicId: UUID = UUID.randomUUID(),
     @Column(nullable = false)

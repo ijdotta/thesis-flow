@@ -12,7 +12,7 @@ import jakarta.persistence.Table
 @Table(indexes = [Index(name = "public_id", columnList = "public_id")])
 class Tag(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long,
+    var id: Long = 0,
     @Column(unique = true, nullable = false, updatable = false)
     var name: String,
     @Column(nullable = false)

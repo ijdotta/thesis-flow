@@ -15,7 +15,7 @@ import jakarta.persistence.Table
 @Table(indexes = [Index(name = "public_id", columnList = "public_id")])
 class ProjectParticipant(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long,
+    var id: Long = 0,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, updatable = false)
     var project: Project,
