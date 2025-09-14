@@ -5,7 +5,8 @@ import ar.edu.uns.cs.thesisflow.people.validation.CreatePerson
 import jakarta.validation.constraints.NotBlank
 
 data class PersonDTO(
-    val publicId: String?,
+    val id: Long? = null,
+    val publicId: String? = null,
     @NotBlank(message = "name is required", groups = [CreatePerson::class])
     val name: String?,
     @NotBlank(message = "lastname is required", groups = [CreatePerson::class])
@@ -18,4 +19,9 @@ data class PersonDTO(
     }
 }
 
-fun Person.toDTO() = PersonDTO(publicId.toString(), name, lastname)
+fun Person.toDTO() = PersonDTO(
+    id = id,
+    publicId = publicId.toString(),
+    name = name,
+    lastname = lastname,
+)

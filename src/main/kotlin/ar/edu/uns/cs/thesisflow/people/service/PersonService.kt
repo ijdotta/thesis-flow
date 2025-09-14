@@ -12,7 +12,9 @@ class PersonService(
 ) {
     fun findAll() = personRepository.findAll().map { it.toDTO() }
 
-    fun findPersonByPublicId(publicId: String?) = publicId?.let {
+    fun findByPublicId(publicId: String?) = findPersonByPublicId(publicId).toDTO()
+
+    private fun findPersonByPublicId(publicId: String?) = publicId?.let {
         personRepository.findByPublicId(UUID.fromString(publicId))
     } ?: throw IllegalArgumentException("Person $publicId does not exist")
 

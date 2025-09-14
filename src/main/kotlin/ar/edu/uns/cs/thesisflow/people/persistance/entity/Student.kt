@@ -19,7 +19,7 @@ class Student(
     @Column(name = "public_id", nullable = false, unique = true, updatable = false)
     var publicId: UUID = UUID.randomUUID(),
     @ManyToOne(fetch = FetchType.LAZY)
-    var person: Person,
+    var person: Person? = null,
     @Column(nullable = false, unique = true)
     var studentId: String,
     @Column(nullable = false, unique = true)
