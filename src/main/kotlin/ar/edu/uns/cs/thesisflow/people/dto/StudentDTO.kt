@@ -1,15 +1,16 @@
 package ar.edu.uns.cs.thesisflow.people.dto
 
+import ar.edu.uns.cs.thesisflow.catalog.dto.CareerDTO
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Student
 
 data class StudentDTO(
     val publicId : String?,
     val personPublicId : String?,
-    val name: String?,
-    val lastname: String?,
+    val person: PersonDTO?,
     val studentId: String?,
     val email: String?,
+    val careers: List<CareerDTO>,
 ) {
     fun toEntity(person: Person) = Student(studentId = studentId!!, person = person, email = email!!)
     fun update(student: Student) {
@@ -22,11 +23,11 @@ data class StudentDTO(
     }
 }
 
-fun Student.toDTO() = StudentDTO(
+fun Student.toDTO(careers: List<CareerDTO> = listOf()) = StudentDTO(
     publicId = publicId.toString(),
     personPublicId = person?.publicId.toString(),
-    name = person?.name,
-    lastname = person?.name,
+    person = person?.toDTO(),
     studentId = studentId,
     email = email,
+    careers = careers
 )
