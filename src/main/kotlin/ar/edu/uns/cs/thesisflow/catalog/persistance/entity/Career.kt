@@ -1,4 +1,4 @@
-package ar.edu.uns.cs.thesisflow.catalog.model
+package ar.edu.uns.cs.thesisflow.catalog.persistance.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

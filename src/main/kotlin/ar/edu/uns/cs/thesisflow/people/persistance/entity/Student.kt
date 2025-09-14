@@ -1,4 +1,4 @@
-package ar.edu.uns.cs.thesisflow.people.model
+package ar.edu.uns.cs.thesisflow.people.persistance.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -13,13 +13,15 @@ import java.util.UUID
 
 @Entity
 @Table(indexes = [Index(name = "uuid", columnList = "uuid")])
-class Professor(
+class Student(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
     @Column(name = "public_id", nullable = false, unique = true, updatable = false)
     var publicId: UUID = UUID.randomUUID(),
     @ManyToOne(fetch = FetchType.LAZY)
     var person: Person,
+    @Column(nullable = false, unique = true)
+    var studentId: String,
     @Column(nullable = false, unique = true)
     var email: String,
 )
