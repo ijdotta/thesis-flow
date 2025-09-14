@@ -8,7 +8,7 @@ import java.util.UUID
 
 @Service
 class PersonService(
-    val personRepository: PersonRepository,
+    private val personRepository: PersonRepository,
 ) {
     fun findAll() = personRepository.findAll().map { it.toDTO() }
 
