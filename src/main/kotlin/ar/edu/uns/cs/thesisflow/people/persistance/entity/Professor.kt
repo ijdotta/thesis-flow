@@ -12,7 +12,7 @@ import jakarta.persistence.Table
 import java.util.UUID
 
 @Entity
-@Table(indexes = [Index(name = "uuid", columnList = "uuid")])
+@Table(indexes = [Index(name = "public_id", columnList = "public_id")])
 class Professor(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
