@@ -3,7 +3,6 @@ package ar.edu.uns.cs.thesisflow.people.service
 import ar.edu.uns.cs.thesisflow.catalog.dto.toDTO
 import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
 import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
-import ar.edu.uns.cs.thesisflow.catalog.service.CareerService
 import ar.edu.uns.cs.thesisflow.people.dto.StudentDTO
 import ar.edu.uns.cs.thesisflow.people.dto.toDTO
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
