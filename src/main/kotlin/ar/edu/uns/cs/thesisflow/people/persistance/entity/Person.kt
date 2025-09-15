@@ -15,9 +15,9 @@ class Person(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0,
     @Column(name = "public_id", nullable = false, unique = true)
-    var publicId: UUID = UUID.randomUUID(),
+    var publicId: UUID? = UUID.randomUUID(),
     @Column(nullable = false)
-    var name: String,
+    var name: String? = null,
     @Column(nullable = false)
-    var lastname: String,
+    var lastname: String? = null,
 )
