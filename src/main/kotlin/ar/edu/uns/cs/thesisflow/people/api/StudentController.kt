@@ -28,4 +28,8 @@ class StudentController(
         val studentWithId = copy(publicId)
         ResponseEntity.ok(studentService.update(studentWithId))
     }
+
+    @PutMapping("/{publicId}/careers")
+    fun updateCareers(@PathVariable publicId: String, @RequestBody careerIds: List<String>) = ResponseEntity
+        .ok(studentService.updateCareers(publicId, careerIds))
 }

@@ -1,7 +1,6 @@
 package ar.edu.uns.cs.thesisflow.catalog.dto
 
 import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
-import java.util.UUID
 
 data class CareerDTO (
     val id: Long? = null,
@@ -9,8 +8,7 @@ data class CareerDTO (
     val name: String? = null,
 ) {
     fun toEntity() = Career(
-        publicId = publicId?.let { UUID.fromString(it) },
-        name = name!!
+        name = name
     )
 
     fun update(career: Career) {
@@ -19,6 +17,7 @@ data class CareerDTO (
 }
 
 fun Career.toDTO() = CareerDTO(
+    id = id,
     publicId = publicId.toString(),
     name = name
 )

@@ -10,7 +10,7 @@ data class StudentDTO(
     val person: PersonDTO?,
     val studentId: String?,
     val email: String?,
-    val careers: List<CareerDTO>,
+    val careers: List<CareerDTO> = emptyList(),
 ) {
     fun toEntity(person: Person) = Student(studentId = studentId!!, person = person, email = email!!)
     fun update(student: Student) {

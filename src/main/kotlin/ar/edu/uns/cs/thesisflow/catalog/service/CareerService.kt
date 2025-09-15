@@ -12,6 +12,10 @@ class CareerService(
 ) {
     fun findAll(): List<CareerDTO> = careerRepository.findAll().map { it.toDTO() }
 
+    fun findAllIn(publicIds: List<String>) = publicIds.map { UUID.fromString(it) }
+        .let { careerRepository.findAllByPublicIdIn(it) }
+        .map { it.toDTO() }
+
     fun findByPublicId(publicId: String) = findEntityByPublicId(publicId).toDTO()
 
     fun findEntityByPublicId(publicId: String?) = publicId?.let {

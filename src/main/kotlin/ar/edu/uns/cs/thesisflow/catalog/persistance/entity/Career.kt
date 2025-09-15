@@ -17,5 +17,5 @@ class Career(
     @Column(name = "public_id", nullable = false, unique = true, updatable = false)
     var publicId: UUID? = UUID.randomUUID(),
     @Column(nullable = false, unique = true)
-    var name: String,
+    var name: String? = null,
 )

@@ -16,12 +16,12 @@ import java.util.UUID
 @Table(indexes = [Index(name = "public_id", columnList = "public_id")])
 class StudentCareer(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long = 0,
-    var publicId: UUID = UUID.randomUUID(),
+    var id: Long? = null,
+    var publicId: UUID? = UUID.randomUUID(),
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
-    var student: Student,
+    var student: Student? = null,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "career_id", nullable = false)
-    var career: Career,
+    var career: Career? = null,
 )
