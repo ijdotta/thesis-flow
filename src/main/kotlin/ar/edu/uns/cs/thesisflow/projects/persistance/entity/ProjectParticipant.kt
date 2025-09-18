@@ -2,6 +2,8 @@ package ar.edu.uns.cs.thesisflow.projects.persistance.entity
 
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -22,4 +24,6 @@ class ProjectParticipant(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, updatable = false)
     var person: Person,
+    @Enumerated(EnumType.STRING)
+    var participantRole: ParticipantRole
 )
