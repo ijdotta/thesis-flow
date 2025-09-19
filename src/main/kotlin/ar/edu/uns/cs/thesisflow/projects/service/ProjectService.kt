@@ -1,8 +1,14 @@
 package ar.edu.uns.cs.thesisflow.projects.service
 
+import ar.edu.uns.cs.thesisflow.people.service.PersonService
+import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantInfo
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
 import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectParticipant
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ApplicationDomainRepository
+import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectParticipantRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
 import org.springframework.stereotype.Service
@@ -13,6 +19,8 @@ class ProjectService(
     private val projectRepository: ProjectRepository,
     private val applicationDomainRepository: ApplicationDomainRepository,
     private val tagRepository: TagRepository,
+    private val projectParticipantRepository: ProjectParticipantRepository,
+    private val personService: PersonService,
 ) {
     fun findAll() = projectRepository.findAll().map { it.toDTO() }
 
@@ -43,6 +51,19 @@ class ProjectService(
         entity.tags = tags
         return projectRepository.save(entity).toDTO()
     }
+
+    fun setParticipants(id: String, participantInfos: List<ParticipantInfo>): ProjectDTO {
+        val project = findEntityByPublicId(id)
+        val participants = participantInfos.map { it.toProjectParticipantEntity(project) }
+        val participantDTOs = projectParticipantRepository.saveAll(participants).map { it.toDTO() }
+        return project.toDTO(participantDTOs)
+    }
+
+    private fun ParticipantInfo.toProjectParticipantEntity(project: Project) = ProjectParticipant(
+        project = project,
+        person = personService.findPersonByPublicId(personId),
+        participantRole = ParticipantRole.valueOf(roleName),
+    )
 }
 
 private fun List<String>.asUUIDs() = this.map { UUID.fromString(it) }

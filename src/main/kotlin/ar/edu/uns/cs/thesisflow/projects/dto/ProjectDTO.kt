@@ -14,6 +14,7 @@ data class ProjectDTO(
     val completion: Instant? = null,
     val applicationDomainDTO: ApplicationDomainDTO? = null,
     val tags: List<TagDTO>? = null,
+    val participants: List<ParticipantDTO>? = null,
 ) {
     fun toEntity() = Project(
         title = title!!,
@@ -32,7 +33,7 @@ data class ProjectDTO(
     }
 }
 
-fun Project.toDTO() = ProjectDTO(
+fun Project.toDTO(participantDTOs: List<ParticipantDTO> = listOf()) = ProjectDTO(
     publicId = this.publicId.toString(),
     title = this.title,
     type = this.type.name,
@@ -41,5 +42,6 @@ fun Project.toDTO() = ProjectDTO(
     completion = completion,
     applicationDomainDTO = applicationDomain?.toDTO(),
     tags = tags.map { it.toDTO() },
+    participants = participantDTOs
 )
 
