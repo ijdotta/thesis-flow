@@ -30,8 +30,8 @@ class ProjectController(
         projectService.update(id, projectDTO)
 
     @PutMapping("/{id}/tags")
-    fun setTags(@PathVariable id: String, @RequestBody tags: List<String>) =
-        projectService.setTags(id, tags)
+    fun setTags(@PathVariable id: String, @RequestBody setTagsRequest: SetTagsRequest) =
+        projectService.setTags(id, setTagsRequest.tagIds)
 
     @PutMapping("/{id}/application-domain")
     fun setApplicationDomain(
