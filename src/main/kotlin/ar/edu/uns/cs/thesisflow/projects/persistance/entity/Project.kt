@@ -22,7 +22,7 @@ import java.util.UUID
 @Table(indexes = [Index(name = "public_id", columnList = "public_id")])
 class Project(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long = 0,
+    var id: Long? = null,
     @Column(name = "public_id", nullable = false, unique = true, updatable = false)
     var publicId: UUID = UUID.randomUUID(),
     @Column(nullable = false)
@@ -40,7 +40,7 @@ class Project(
     @Column(nullable = true)
     var completion: Instant? = null,
     @ManyToOne(fetch = FetchType.LAZY)
-    var applicationDomain: ApplicationDomain,
+    var applicationDomain: ApplicationDomain? = null,
     @ManyToMany(fetch = FetchType.LAZY)
     var tags: MutableSet<Tag> = mutableSetOf(),
     @Column(nullable = false)

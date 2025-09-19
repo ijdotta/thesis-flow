@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface TagRepository: JpaRepository<Tag, Long> {
     fun findByPublicId(publicId: UUID): Tag?
+    fun findAllByPublicIdIn(ids: Collection<UUID>): List<Tag>
 }
