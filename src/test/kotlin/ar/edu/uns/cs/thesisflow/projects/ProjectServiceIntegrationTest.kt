@@ -116,6 +116,19 @@ class ProjectServiceIntegrationTest(
         }
     }
 
+    @Test
+    fun `add project tags happy path`() {
+        val project = projectService.create(getProjectDTO())
+        val tagIds = tags.map { it.publicId!! }
+
+        val projectWithTags = projectService.setTags(project.publicId!!, tagIds)
+
+        val tags = projectWithTags.tags
+        assertNotNull(tags)
+        val addedIds = tags.map { it.publicId!! }.toSet()
+        assertEquals(tagIds.toSet(), addedIds)
+    }
+
     private fun getProjectDTO() = ProjectDTO(
         title = "title",
         type = ProjectType.FINAL_PROJECT.name,
