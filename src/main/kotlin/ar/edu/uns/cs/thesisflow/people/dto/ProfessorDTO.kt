@@ -2,7 +2,6 @@ package ar.edu.uns.cs.thesisflow.people.dto
 
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Professor
-import java.util.UUID
 
 data class ProfessorDTO(
     val id: Long? = null,
@@ -10,7 +9,7 @@ data class ProfessorDTO(
     val personPublicId: String? = null,
     val email: String? = null,
 ) {
-    fun toEntity(person: Person) = Professor(publicId = UUID.fromString(publicId!!), person = person, email = email!!)
+    fun toEntity(person: Person) = Professor(person = person, email = email!!)
     fun update(professor: Professor) {
         email?.let { professor.email = it }
     }

@@ -11,6 +11,7 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ApplicationDomai
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectParticipantRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
+import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -38,6 +39,7 @@ class ProjectService(
         return projectRepository.save(entity).toDTO()
     }
 
+    @Transactional
     fun setApplicationDomain(id: String, domainId: String): ProjectDTO {
         val entity = findEntityByPublicId(id)
         val domain = applicationDomainRepository.findByPublicId(UUID.fromString(domainId))
@@ -45,6 +47,7 @@ class ProjectService(
         return projectRepository.save(entity).toDTO()
     }
 
+    @Transactional
     fun setTags(id: String, tagIds: List<String>): ProjectDTO {
         val entity = findEntityByPublicId(id)
         val tags = tagIds.asUUIDs().let { tagRepository.findAllByPublicIdIn(it) }.toMutableSet()
@@ -52,6 +55,7 @@ class ProjectService(
         return projectRepository.save(entity).toDTO()
     }
 
+    @Transactional
     fun setParticipants(id: String, participantInfos: List<ParticipantInfo>): ProjectDTO {
         val project = findEntityByPublicId(id)
         val participants = participantInfos.map { it.toProjectParticipantEntity(project) }

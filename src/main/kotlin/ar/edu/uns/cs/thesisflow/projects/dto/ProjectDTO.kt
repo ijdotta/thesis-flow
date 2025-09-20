@@ -21,7 +21,7 @@ data class ProjectDTO(
         type = ProjectType.valueOf(type!!),
         subType = subtype?.map { ProjectSubType.valueOf(it) }?.toMutableSet() ?: mutableSetOf(),
         initialSubmission = initialSubmission!!,
-        completion = completion!!,
+        completion = completion,
     )
 
     fun update(project: Project) {
