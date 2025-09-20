@@ -1,14 +1,17 @@
 package ar.edu.uns.cs.thesisflow.projects
 
+import ar.edu.uns.cs.thesisflow.people.dto.PersonDTO
+import ar.edu.uns.cs.thesisflow.people.service.PersonService
 import ar.edu.uns.cs.thesisflow.projects.dto.ApplicationDomainDTO
+import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantInfo
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
 import ar.edu.uns.cs.thesisflow.projects.dto.TagDTO
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectSubType
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import ar.edu.uns.cs.thesisflow.projects.service.ApplicationDomainService
 import ar.edu.uns.cs.thesisflow.projects.service.ProjectService
 import ar.edu.uns.cs.thesisflow.projects.service.TagService
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertNotNull
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,6 +21,7 @@ import org.springframework.test.context.TestPropertySource
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -31,14 +35,17 @@ class ProjectServiceIntegrationTest(
     @Autowired val projectService: ProjectService,
     @Autowired val applicationDomainService: ApplicationDomainService,
     @Autowired val tagService: TagService,
+    @Autowired val personService: PersonService,
 ) {
     private lateinit var applicationDomains: List<ApplicationDomainDTO>
     private lateinit var tags: List<TagDTO>
+    private lateinit var people: List<PersonDTO>
 
     @BeforeEach
     fun setup() {
         insertApplicationDomains()
         insertTags()
+        insertPeople()
     }
 
     private fun insertApplicationDomains() {
@@ -63,14 +70,20 @@ class ProjectServiceIntegrationTest(
         }.toList()
     }
 
+    private fun insertPeople() {
+        people = (0..5).map {
+            PersonDTO(
+                name = "name-$it",
+                lastname = "lastname-$it",
+            )
+        }.map {
+            personService.create(it)
+        }.toList()
+    }
+
     @Test
     fun `create project happy path`() {
-        val projectDTO = ProjectDTO(
-            title = "title",
-            type = ProjectType.FINAL_PROJECT.name,
-            subtype = listOf(ProjectSubType.TYPE_1.name),
-            initialSubmission = Instant.now(),
-        )
+        val projectDTO = getProjectDTO()
         val project = projectService.create(projectDTO)
 
         with(project) {
@@ -80,4 +93,33 @@ class ProjectServiceIntegrationTest(
             assertEquals(projectDTO.subtype, subtype)
         }
     }
+
+    @Test
+    fun `add project participants happy path`() {
+        val project = projectService.create(getProjectDTO())
+        val participantsInfo = listOf(
+            ParticipantInfo(people[0].publicId!!, ParticipantRole.DIRECTOR.name),
+            ParticipantInfo(people[1].publicId!!, ParticipantRole.CO_DIRECTOR.name),
+            ParticipantInfo(people[2].publicId!!, ParticipantRole.COLLABORATOR.name),
+            ParticipantInfo(people[3].publicId!!, ParticipantRole.STUDENT.name),
+        )
+
+        val projectWithParticipants = projectService.setParticipants(project.publicId!!, participantsInfo)
+
+        val participants = projectWithParticipants.participants
+        assertNotNull(participants)
+        participantsInfo.forEach { participant ->
+            assertTrue { participants.any {
+                it.personDTO.publicId == participant.personId &&
+                it.role == participant.roleName
+            } }
+        }
+    }
+
+    private fun getProjectDTO() = ProjectDTO(
+        title = "title",
+        type = ProjectType.FINAL_PROJECT.name,
+        subtype = listOf(ProjectSubType.TYPE_1.name),
+        initialSubmission = Instant.now(),
+    )
 }
