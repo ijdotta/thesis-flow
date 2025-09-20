@@ -39,6 +39,7 @@ class ProjectService(
         return projectRepository.save(entity).toDTO()
     }
 
+    @Transactional
     fun setApplicationDomain(id: String, domainId: String): ProjectDTO {
         val entity = findEntityByPublicId(id)
         val domain = applicationDomainRepository.findByPublicId(UUID.fromString(domainId))
@@ -46,6 +47,7 @@ class ProjectService(
         return projectRepository.save(entity).toDTO()
     }
 
+    @Transactional
     fun setTags(id: String, tagIds: List<String>): ProjectDTO {
         val entity = findEntityByPublicId(id)
         val tags = tagIds.asUUIDs().let { tagRepository.findAllByPublicIdIn(it) }.toMutableSet()

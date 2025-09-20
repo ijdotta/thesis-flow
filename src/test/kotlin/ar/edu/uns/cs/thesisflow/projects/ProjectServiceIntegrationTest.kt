@@ -129,6 +129,16 @@ class ProjectServiceIntegrationTest(
         assertEquals(tagIds.toSet(), addedIds)
     }
 
+    @Test
+    fun `add project application domains happy path`() {
+        val project = projectService.create(getProjectDTO())
+        val domainId = applicationDomains[0].publicId!!
+
+        val projectWithApplicationDomain = projectService.setApplicationDomain(project.publicId!!, domainId)
+
+        assertEquals(domainId, projectWithApplicationDomain.applicationDomainDTO?.publicId!!)
+    }
+
     private fun getProjectDTO() = ProjectDTO(
         title = "title",
         type = ProjectType.FINAL_PROJECT.name,
