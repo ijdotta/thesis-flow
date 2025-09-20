@@ -18,6 +18,6 @@ class ApplicationDomain(
     var publicId: UUID = UUID.randomUUID(),
     @Column(nullable = false, unique = true)
     var name: String,
-    @Column(nullable = false)
-    var description: String
+    @Column(nullable = true)
+    var description: String? = null,
 )
