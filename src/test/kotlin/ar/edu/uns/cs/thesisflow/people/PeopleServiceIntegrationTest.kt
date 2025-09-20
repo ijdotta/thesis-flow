@@ -1,5 +1,7 @@
 package ar.edu.uns.cs.thesisflow.people
 
+import ar.edu.uns.cs.thesisflow.catalog.dto.CareerDTO
+import ar.edu.uns.cs.thesisflow.catalog.service.CareerService
 import ar.edu.uns.cs.thesisflow.people.dto.PersonDTO
 import ar.edu.uns.cs.thesisflow.people.dto.ProfessorDTO
 import ar.edu.uns.cs.thesisflow.people.dto.StudentDTO
@@ -26,6 +28,7 @@ class PeopleServiceIntegrationTest(
     @Autowired val personService: PersonService,
     @Autowired val studentService: StudentService,
     @Autowired val professorService: ProfessorService,
+    @Autowired val careerService: CareerService,
 ) {
     @Test
     fun `create top-level person happy path`() {
@@ -78,6 +81,27 @@ class PeopleServiceIntegrationTest(
             assertEquals(professorDTO.personPublicId, personPublicId)
             assertEquals(professorDTO.email, email)
         }
+    }
+
+    @Test
+    fun `add careers to students happy path`() {
+        val person = personService.create(getPersonDTO())
+        val studentDTO = StudentDTO(
+            publicId = null,
+            personPublicId = person.publicId,
+            person = null,
+            studentId = "student-1",
+            email = "email@domain.com"
+        )
+        val student = studentService.create(studentDTO)
+
+        val careerDTO = CareerDTO(name = "Systems Information Engineering")
+        val career = careerService.create(careerDTO)
+
+        val studentWithCareers = studentService.updateCareers(student.publicId!!, listOf(career.publicId!!))
+
+        assertEquals(1, studentWithCareers.careers.size)
+        assertEquals(career.publicId, studentWithCareers.careers[0].publicId)
     }
 
     private fun getPersonDTO() = PersonDTO(

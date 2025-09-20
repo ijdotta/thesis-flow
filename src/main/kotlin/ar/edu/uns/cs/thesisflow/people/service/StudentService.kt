@@ -10,6 +10,7 @@ import ar.edu.uns.cs.thesisflow.people.persistance.entity.StudentCareer
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
+import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -50,6 +51,7 @@ class StudentService(
         return studentRepository.save(student).toDTO()
     }
 
+    @Transactional
     fun updateCareers(publicId: String, careers: List<String>): StudentDTO {
         val student = findEntityByPublicId(UUID.fromString(publicId))
         val careers = getCareers(careers)
