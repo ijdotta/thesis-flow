@@ -29,6 +29,8 @@ fun Student.toDTO(careers: List<CareerDTO> = listOf()) = StudentDTO(
     publicId = publicId.toString(),
     personPublicId = person?.publicId.toString(),
     person = person?.toDTO(),
+    name = person?.name,
+    lastname = person?.lastname,
     studentId = studentId,
     email = email,
     careers = careers
