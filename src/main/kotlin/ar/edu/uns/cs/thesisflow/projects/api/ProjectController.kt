@@ -4,14 +4,7 @@ import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
 import ar.edu.uns.cs.thesisflow.projects.service.ProjectService
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import ar.edu.uns.cs.thesisflow.projects.service.ProjectFilter
 import ar.edu.uns.cs.thesisflow.projects.service.NullabilityFilter
 
@@ -28,25 +21,22 @@ class ProjectController(
         @RequestParam(name = "professor.name", required = false) professorName: String?,
         @RequestParam(name = "student.name", required = false) studentName: String?,
         @RequestParam(required = false) domain: String?,
-        @RequestParam(required = false) completion: String?, // expects 'null' or 'not-null'
-        @RequestParam(required = false, name = "initialSubmission") initialSubmission: String?, // expects 'null' or 'not-null'
+        @RequestParam(required = false) completed: Boolean?, // completed=true -> completion NOT NULL; false -> completion NULL
     ): ResponseEntity<*> {
         val filter = ProjectFilter(
             title = title?.takeIf { it.isNotBlank() },
             professorName = professorName?.takeIf { it.isNotBlank() },
             studentName = studentName?.takeIf { it.isNotBlank() },
             domain = domain?.takeIf { it.isNotBlank() },
-            completion = completion.toNullability(),
-            initialSubmission = initialSubmission.toNullability(),
+            completion = completed.toNullabilityFilter(),
         )
         return ResponseEntity.ok(projectService.findAll(PageRequest.of(page, size), filter))
     }
 
-    private fun String?.toNullability(): NullabilityFilter? = when (this?.lowercase()) {
-        null, "" -> null
-        "null" -> NullabilityFilter.NULL
-        "not-null", "notnull", "not_null" -> NullabilityFilter.NOT_NULL
-        else -> null // silently ignore invalid token; could throw if stricter validation desired
+    private fun Boolean?.toNullabilityFilter(): NullabilityFilter? = when (this) {
+        null -> null
+        true -> NullabilityFilter.NOT_NULL
+        false -> NullabilityFilter.NULL
     }
 
     @GetMapping("/{id}")

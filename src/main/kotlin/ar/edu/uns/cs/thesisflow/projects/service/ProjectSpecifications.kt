@@ -17,11 +17,10 @@ data class ProjectFilter(
     val professorName: String? = null,
     val studentName: String? = null,
     val domain: String? = null,
-    val completion: NullabilityFilter? = null,
-    val initialSubmission: NullabilityFilter? = null,
+    val completion: NullabilityFilter? = null, // derived from completed=true/false
 ) {
     companion object { fun empty() = ProjectFilter() }
-    val isEmpty: Boolean get() = listOf(title, professorName, studentName, domain, completion, initialSubmission).all { it == null }
+    val isEmpty: Boolean get() = listOf(title, professorName, studentName, domain, completion).all { it == null }
 }
 
 object ProjectSpecifications {
@@ -46,13 +45,6 @@ object ProjectSpecifications {
                 predicates += when (nf) {
                     NullabilityFilter.NULL -> cb.isNull(root.get<Instant?>("completion"))
                     NullabilityFilter.NOT_NULL -> cb.isNotNull(root.get<Instant?>("completion"))
-                }
-            }
-
-            filter.initialSubmission?.let { nf ->
-                predicates += when (nf) {
-                    NullabilityFilter.NULL -> cb.isNull(root.get<Instant?>("initialSubmission"))
-                    NullabilityFilter.NOT_NULL -> cb.isNotNull(root.get<Instant?>("initialSubmission"))
                 }
             }
 
