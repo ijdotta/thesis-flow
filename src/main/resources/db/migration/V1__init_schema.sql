@@ -1,4 +1,5 @@
--- V1 Initial schema creation matching current JPA model
+-- V1 Baseline schema (clean rewrite)
+-- Drop your database before applying this for a pristine start.
 
 -- PERSON
 CREATE TABLE person (
@@ -36,7 +37,7 @@ CREATE TABLE tag (
 CREATE INDEX idx_tag_public_id ON tag(public_id);
 CREATE INDEX idx_tag_name ON tag(name);
 
--- STUDENT
+-- STUDENT (person optional per current entity)
 CREATE TABLE student (
     id BIGSERIAL PRIMARY KEY,
     public_id UUID NOT NULL UNIQUE,
@@ -47,7 +48,7 @@ CREATE TABLE student (
 CREATE INDEX idx_student_public_id ON student(public_id);
 CREATE INDEX idx_student_email ON student(email);
 
--- PROFESSOR
+-- PROFESSOR (person required)
 CREATE TABLE professor (
     id BIGSERIAL PRIMARY KEY,
     public_id UUID NOT NULL UNIQUE,
@@ -71,14 +72,14 @@ CREATE TABLE project (
 );
 CREATE INDEX idx_project_public_id ON project(public_id);
 
--- PROJECT SUBTYPES (ElementCollection)
+-- PROJECT SUBTYPES (ElementCollection for subType)
 CREATE TABLE project_subtypes (
     project_id BIGINT NOT NULL REFERENCES project(id) ON DELETE CASCADE,
     sub_type VARCHAR(50) NOT NULL,
     PRIMARY KEY (project_id, sub_type)
 );
 
--- PROJECT TAGS (Join table)
+-- PROJECT TAGS (join table) - explicit mapping in entity
 CREATE TABLE project_tags (
     project_id BIGINT NOT NULL REFERENCES project(id) ON DELETE CASCADE,
     tag_id BIGINT NOT NULL REFERENCES tag(id) ON DELETE RESTRICT,
@@ -96,7 +97,7 @@ CREATE TABLE project_participant (
 );
 CREATE INDEX idx_project_participant_public_id ON project_participant(public_id);
 
--- STUDENT CAREER
+-- STUDENT CAREER (bridge) unique pair
 CREATE TABLE student_career (
     id BIGSERIAL PRIMARY KEY,
     public_id UUID NOT NULL UNIQUE,
@@ -105,5 +106,3 @@ CREATE TABLE student_career (
     CONSTRAINT uc_student_career UNIQUE (student_id, career_id)
 );
 CREATE INDEX idx_student_career_public_id ON student_career(public_id);
-
--- (Optional) future: audit tables or versioning
