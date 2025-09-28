@@ -23,7 +23,11 @@ class ProjectService(
     private val projectParticipantRepository: ProjectParticipantRepository,
     private val personService: PersonService,
 ) {
-    fun findAll() = projectRepository.findAll().map { it.toDTO() }
+    fun findAll() = projectRepository.findAll().map {
+        val participants = projectParticipantRepository.findAllByProject(it)
+        val participantDTOs = participants.map { p -> p.toDTO() }
+        it.toDTO(participantDTOs)
+    }
 
     fun findByPublicId(id: String?) = findEntityByPublicId(id).toDTO()
 

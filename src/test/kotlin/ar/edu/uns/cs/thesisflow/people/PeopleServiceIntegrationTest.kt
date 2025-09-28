@@ -22,7 +22,7 @@ import kotlin.test.assertNotNull
     "spring.datasource.url=jdbc:postgresql://localhost:5432/thesis_flow",
     "spring.datasource.username=thesis_flow_owner",
     "spring.datasource.password=owner",
-    "spring.jpa.hibernate.ddl-auto=create-drop"
+    "spring.jpa.hibernate.ddl-auto=update"
 ])
 class PeopleServiceIntegrationTest(
     @Autowired val personService: PersonService,
