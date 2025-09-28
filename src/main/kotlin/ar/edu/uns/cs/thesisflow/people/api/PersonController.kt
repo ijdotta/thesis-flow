@@ -28,6 +28,7 @@ class PersonController(
     ) = try {
         ResponseEntity.ok().body(personService.findAll(PageRequest.of(page, size)))
     } catch (ex: Exception) {
+        logger.error("Error fetching people page=$page size=$size", ex)
         ResponseEntity.internalServerError().build()
     }
 
@@ -35,6 +36,7 @@ class PersonController(
     fun createPerson(@RequestBody person: PersonDTO) = try {
         ResponseEntity.ok().body(personService.create(person))
     } catch (ex: Exception) {
+        logger.error("Error creating person ${person.publicId}", ex)
         ResponseEntity.internalServerError().build()
     }
 
@@ -46,6 +48,7 @@ class PersonController(
         val personWithId = person.copy(publicId = publicId)
         ResponseEntity.ok().body(personService.update(personWithId))
     } catch (ex: Exception) {
+        logger.error("Error updating person $publicId", ex)
         ResponseEntity.internalServerError().build()
     }
 }

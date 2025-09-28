@@ -14,9 +14,6 @@ class CareerService(
 ) {
     fun findAll(pageable: Pageable): Page<CareerDTO> = careerRepository.findAll(pageable).map { it.toDTO() }
 
-    fun findAllIn(publicIds: List<String>) = publicIds.map { UUID.fromString(it) }
-        .let { careerRepository.findAllByPublicIdIn(it) }
-        .map { it.toDTO() }
 
     fun findByPublicId(publicId: String) = findEntityByPublicId(publicId).toDTO()
 

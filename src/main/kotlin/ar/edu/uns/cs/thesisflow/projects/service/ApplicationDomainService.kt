@@ -2,7 +2,6 @@ package ar.edu.uns.cs.thesisflow.projects.service
 
 import ar.edu.uns.cs.thesisflow.projects.dto.ApplicationDomainDTO
 import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
-import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ApplicationDomain
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ApplicationDomainRepository
 import org.springframework.stereotype.Service
 import java.util.UUID
