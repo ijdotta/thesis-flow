@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.data.domain.PageRequest
 
 @RestController
 @RequestMapping("/tags")
@@ -17,7 +19,10 @@ class TagController(
     val tagService: TagService
 ) {
     @GetMapping
-    fun findAll() = ResponseEntity.ok(tagService.findAll())
+    fun findAll(
+        @RequestParam(required = false, defaultValue = "0") page: Int,
+        @RequestParam(required = false, defaultValue = "25") size: Int,
+    ) = ResponseEntity.ok(tagService.findAll(PageRequest.of(page, size)))
 
     @GetMapping("/{publicId}")
     fun findByPublicId(@PathVariable publicId: String) =

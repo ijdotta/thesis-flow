@@ -12,6 +12,8 @@ import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepos
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Page
 import java.util.*
 
 @Service
@@ -21,7 +23,7 @@ class StudentService(
     private val careerRepository: CareerRepository,
     private val studentCareerRepository: StudentCareerRepository,
 ) {
-    fun findAll() = studentRepository.findAll().map { it.toDTO() }
+    fun findAll(pageable: Pageable): Page<StudentDTO> = studentRepository.findAll(pageable).map { it.toDTO() }
 
     fun findByPublicId(publicId: String) = findEntityByPublicId(UUID.fromString(publicId)).toDTO()
 

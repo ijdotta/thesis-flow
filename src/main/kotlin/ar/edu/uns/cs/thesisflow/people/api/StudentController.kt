@@ -2,6 +2,7 @@ package ar.edu.uns.cs.thesisflow.people.api
 
 import ar.edu.uns.cs.thesisflow.people.dto.StudentDTO
 import ar.edu.uns.cs.thesisflow.people.service.StudentService
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -12,8 +13,11 @@ class StudentController(
 ) {
 
     @GetMapping
-    fun findAll() = ResponseEntity
-        .ok(studentService.findAll())
+    fun findAll(
+        @RequestParam(required = false, defaultValue = "0") page: Int,
+        @RequestParam(required = false, defaultValue = "25") size: Int,
+    ) = ResponseEntity
+        .ok(studentService.findAll(PageRequest.of(page, size)))
 
     @GetMapping("/{publicId}")
     fun findByPublicId(@PathVariable publicId: String) = ResponseEntity
