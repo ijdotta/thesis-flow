@@ -14,10 +14,12 @@ import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import java.time.Instant
 import java.util.UUID
 
+@Suppress("unused") // JPA accessed fields
 @Entity
 @Table(indexes = [Index(name = "public_id", columnList = "public_id")])
 class Project(
@@ -43,6 +45,8 @@ class Project(
     var applicationDomain: ApplicationDomain? = null,
     @ManyToMany(fetch = FetchType.LAZY)
     var tags: MutableSet<Tag> = mutableSetOf(),
+    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
+    var participants: MutableSet<ProjectParticipant> = mutableSetOf(),
     @Column(nullable = false)
     var createdAt: Instant = Instant.now(),
     @Column(nullable = false)

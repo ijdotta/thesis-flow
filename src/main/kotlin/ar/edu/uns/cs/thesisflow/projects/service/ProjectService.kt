@@ -25,8 +25,12 @@ class ProjectService(
     private val projectParticipantRepository: ProjectParticipantRepository,
     private val personService: PersonService,
 ) {
-    fun findAll(pageable: Pageable): Page<ProjectDTO> {
-        return projectRepository.findAll(pageable).map { it.withEnrichedParticipants() }
+    fun findAll(pageable: Pageable): Page<ProjectDTO> =
+        findAll(pageable, ProjectFilter.empty())
+
+    fun findAll(pageable: Pageable, filter: ProjectFilter): Page<ProjectDTO> {
+        val spec = ProjectSpecifications.withFilter(filter)
+        return projectRepository.findAll(spec, pageable).map { it.withEnrichedParticipants() }
     }
 
     private fun Project.withEnrichedParticipants(): ProjectDTO {
