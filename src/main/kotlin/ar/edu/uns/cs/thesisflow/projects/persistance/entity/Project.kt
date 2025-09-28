@@ -37,7 +37,11 @@ class Project(
     @ManyToOne(fetch = FetchType.LAZY)
     var applicationDomain: ApplicationDomain? = null,
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "project_tags")
+    @JoinTable(
+        name = "project_tags",
+        joinColumns = [JoinColumn(name = "project_id")],
+        inverseJoinColumns = [JoinColumn(name = "tag_id")]
+    )
     var tags: MutableSet<Tag> = mutableSetOf(),
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     var participants: MutableSet<ProjectParticipant> = mutableSetOf(),
