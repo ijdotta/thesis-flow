@@ -5,17 +5,19 @@ import ar.edu.uns.cs.thesisflow.people.service.StudentService
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import ar.edu.uns.cs.thesisflow.common.ApiPaths
+import ar.edu.uns.cs.thesisflow.common.PaginationDefaults
 
 @RestController
-@RequestMapping("/students")
+@RequestMapping(ApiPaths.STUDENTS)
 class StudentController(
     private val studentService: StudentService,
 ) {
 
     @GetMapping
     fun findAll(
-        @RequestParam(required = false, defaultValue = "0") page: Int,
-        @RequestParam(required = false, defaultValue = "25") size: Int,
+        @RequestParam(required = false, defaultValue = PaginationDefaults.PAGE_STRING) page: Int,
+        @RequestParam(required = false, defaultValue = PaginationDefaults.SIZE_STRING) size: Int,
     ) = ResponseEntity
         .ok(studentService.findAll(PageRequest.of(page, size)))
 
@@ -29,7 +31,7 @@ class StudentController(
 
     @PutMapping("/{publicId}")
     fun update(@PathVariable publicId: String, @RequestBody request: StudentDTO) = with (request) {
-        val studentWithId = copy(publicId)
+        val studentWithId = copy(publicId = publicId)
         ResponseEntity.ok(studentService.update(studentWithId))
     }
 

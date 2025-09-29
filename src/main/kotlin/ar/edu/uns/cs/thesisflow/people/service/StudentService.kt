@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
 import java.util.*
+import ar.edu.uns.cs.thesisflow.common.ErrorMessages
 
 @Service
 class StudentService(
@@ -28,7 +29,7 @@ class StudentService(
     fun findByPublicId(publicId: String) = findEntityByPublicId(UUID.fromString(publicId)).toDTO()
 
     fun findEntityByPublicId(publicId: UUID) = studentRepository.findByPublicId(publicId)
-        ?: throw IllegalArgumentException("No student found for publicId: $publicId")
+        ?: throw IllegalArgumentException(ErrorMessages.studentNotFound(publicId))
 
     fun create(studentDTO: StudentDTO): StudentDTO {
         val person = studentDTO.getPerson()
@@ -39,13 +40,13 @@ class StudentService(
 
     private fun checkPersonNotAssociated(person: Person) {
         studentRepository.findFirstByPerson(person)?.let {
-            throw IllegalArgumentException("Person ${person.publicId} already associated to other student")
+            throw IllegalArgumentException(ErrorMessages.personAlreadyStudent(person.publicId))
         }
     }
 
     private fun StudentDTO.getPerson() =
         personPublicId?.let { personRepository.findByPublicId(UUID.fromString(it)) }
-            ?: throw IllegalArgumentException("No person found for publicId: $personPublicId")
+            ?: throw IllegalArgumentException(ErrorMessages.noPersonForStudent(personPublicId))
 
     fun update(studentDTO: StudentDTO): StudentDTO {
         val student = findEntityByPublicId(UUID.fromString(studentDTO.publicId!!))
@@ -56,17 +57,20 @@ class StudentService(
     @Transactional
     fun updateCareers(publicId: String, careers: List<String>): StudentDTO {
         val student = findEntityByPublicId(UUID.fromString(publicId))
-        val careers = getCareers(careers)
-        val studentCareersAssociation = careers.map { StudentCareer(student = student, career = it) }
-        studentCareersAssociation.forEach { studentCareerRepository.save(it) }
-        return student.toDTO(careers.map { it.toDTO() })
+        val resolvedCareers = getCareers(careers)
+        val associations = resolvedCareers.map { StudentCareer(student = student, career = it) }
+        associations.forEach { studentCareerRepository.save(it) }
+        return student.toDTO(resolvedCareers.map { it.toDTO() })
     }
 
-    private fun getCareers(careers: List<String>): List<Career> {
-        val existing = careerRepository.findAllByPublicIdIn(careers.map { UUID.fromString(it) })
-        val missingCareers = existing.filter { !careers.contains(it.publicId!!.toString()) }
-        if (missingCareers.isNotEmpty()) {
-            throw IllegalArgumentException("Some careers do not exist: ${missingCareers.map { it.toDTO() }}")
+    private fun getCareers(requestedCareerIds: List<String>): List<Career> {
+        if (requestedCareerIds.isEmpty()) return emptyList()
+        val requestedUUIDs = requestedCareerIds.map { UUID.fromString(it) }
+        val existing = careerRepository.findAllByPublicIdIn(requestedUUIDs)
+        val existingIds = existing.mapNotNull { it.publicId }.toSet()
+        val missing = requestedUUIDs.filterNot { existingIds.contains(it) }
+        if (missing.isNotEmpty()) {
+            throw IllegalArgumentException(ErrorMessages.someCareersDoNotExist(missing))
         }
         return existing
     }

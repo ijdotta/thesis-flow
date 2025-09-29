@@ -8,25 +8,20 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
+import ar.edu.uns.cs.thesisflow.common.ValidationConstants
+import ar.edu.uns.cs.thesisflow.common.ErrorMessages
 
 @Service
 class ProfessorService(
     private val professorRepository: ProfessorRepository,
     private val personRepository: PersonRepository
 ) {
-    companion object {
-        val VALID_EMAIL_DOMAINS = listOf(
-            "@cs.uns.edu.ar",
-            "@uns.edu.ar"
-        )
-    }
-
     fun findAll(pageable: Pageable): Page<ProfessorDTO> = professorRepository.findAll(pageable).map { it.toDTO() }
     fun findByPublicId(publicId: String) = findEntityByPublicId(publicId).toDTO()
 
     private fun findEntityByPublicId(publicId: String?) =
         publicId?.let { professorRepository.findByPublicId(UUID.fromString(it)) }
-            ?: throw IllegalArgumentException("No professor found for $publicId")
+            ?: throw IllegalArgumentException(ErrorMessages.professorNotFound(publicId))
 
     fun create(professorDTO: ProfessorDTO): ProfessorDTO {
         validate(professorDTO)
@@ -42,20 +37,20 @@ class ProfessorService(
 
     private fun ProfessorDTO.getPerson() = personPublicId?.let {
         personRepository.findByPublicId(UUID.fromString(it))
-    } ?: throw IllegalArgumentException("No person found for $personPublicId")
+    } ?: throw IllegalArgumentException(ErrorMessages.noPersonForProfessor(personPublicId))
 
     private fun checkNotAssociated(personPublicId: UUID) {
         if (professorRepository.existsByPersonPublicId(personPublicId)) {
-            throw IllegalArgumentException("Person $personPublicId is associated to other professor.")
+            throw IllegalArgumentException(ErrorMessages.personAlreadyAssociated(personPublicId))
         }
     }
 
     private fun validateEmail(email: String?) {
         if (email.isNullOrBlank()) {
-            throw IllegalArgumentException("Email cannot be null or blank.")
+            throw IllegalArgumentException(ErrorMessages.emailNullOrBlank())
         }
-        if (VALID_EMAIL_DOMAINS.none { email.endsWith(it) }) {
-            throw IllegalArgumentException("Email must end with '$VALID_EMAIL_DOMAINS'")
+        if (ValidationConstants.PROFESSOR_VALID_EMAIL_DOMAINS.none { email.endsWith(it) }) {
+            throw IllegalArgumentException(ErrorMessages.emailInvalidDomain(ValidationConstants.PROFESSOR_VALID_EMAIL_DOMAINS))
         }
     }
 

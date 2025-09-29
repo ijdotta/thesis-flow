@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
+import ar.edu.uns.cs.thesisflow.common.ErrorMessages
 
 @Service
 class CareerService(
@@ -19,7 +20,7 @@ class CareerService(
 
     fun findEntityByPublicId(publicId: String?) = publicId?.let {
         careerRepository.findByPublicId(UUID.fromString(it))
-    } ?: throw IllegalArgumentException("Career with $publicId not found")
+    } ?: throw IllegalArgumentException(ErrorMessages.careerNotFound(publicId))
 
     fun create(careerDTO: CareerDTO): CareerDTO {
         validate(careerDTO)
@@ -29,7 +30,7 @@ class CareerService(
 
     private fun validate(careerDTO: CareerDTO) {
         if (careerDTO.name.isNullOrBlank()) {
-            throw IllegalArgumentException("Career name cannot be null or blank")
+            throw IllegalArgumentException(ErrorMessages.careerNameBlank())
         }
     }
 

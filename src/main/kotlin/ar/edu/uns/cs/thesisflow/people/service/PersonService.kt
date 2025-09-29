@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
+import ar.edu.uns.cs.thesisflow.common.ErrorMessages
 
 @Service
 class PersonService(
@@ -16,9 +17,10 @@ class PersonService(
 
     fun findByPublicId(publicId: String?) = findPersonByPublicId(publicId).toDTO()
 
-    fun findPersonByPublicId(publicId: String?) = publicId?.let {
-        personRepository.findByPublicId(UUID.fromString(publicId))
-    } ?: throw IllegalArgumentException("Person $publicId does not exist")
+    fun findPersonByPublicId(publicId: String?) = publicId
+        ?.let { UUID.fromString(it) }
+        ?.let { personRepository.findByPublicId(it) }
+        ?: throw IllegalArgumentException(ErrorMessages.personNotFound(publicId))
 
     fun create(person: PersonDTO) = person.toEntity().let { personRepository.save(it) }.toDTO()
 
