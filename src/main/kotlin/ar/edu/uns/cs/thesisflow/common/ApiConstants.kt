@@ -44,4 +44,7 @@ object ErrorMessages {
     fun someCareersDoNotExist(missing: Collection<UUID>) = "Some careers do not exist: $missing"
     fun careerNotFound(id: String?) = "Career with $id not found"
     fun careerNameBlank() = "Career name cannot be null or blank"
+    fun projectNotFound(id: String?) = "Project not found for id $id"
+    fun tagNotFound(id: String?) = "Tag not found for id $id"
+    fun applicationDomainNotFound(id: String?) = "ApplicationDomain not found for id $id"
 }

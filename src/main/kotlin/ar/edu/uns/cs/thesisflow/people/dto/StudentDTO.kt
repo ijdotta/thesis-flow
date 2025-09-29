@@ -3,6 +3,9 @@ package ar.edu.uns.cs.thesisflow.people.dto
 import ar.edu.uns.cs.thesisflow.catalog.dto.CareerDTO
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Student
+import ar.edu.uns.cs.thesisflow.people.validation.CreateStudent
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
 
 data class StudentDTO(
     val publicId : String? = null,
@@ -10,7 +13,10 @@ data class StudentDTO(
     val person: PersonDTO? = null,
     val name: String? = null,
     val lastname: String? = null,
+    @field:NotBlank(message = "studentId is required", groups = [CreateStudent::class])
     val studentId: String? = null,
+    @field:Email(message = "email must be valid", groups = [CreateStudent::class])
+    @field:NotBlank(message = "email is required", groups = [CreateStudent::class])
     val email: String? = null,
     val careers: List<CareerDTO> = emptyList(),
 ) {

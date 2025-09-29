@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
+import ar.edu.uns.cs.thesisflow.common.ErrorMessages
+import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
 
 @Service
 class TagService(
@@ -18,7 +20,7 @@ class TagService(
 
     private fun findEntityByPublicId(publicId: String?) =
         publicId?.let { tagRepository.findByPublicId(UUID.fromString(it)) }
-            ?: throw IllegalArgumentException("Tag not found for id $publicId")
+            ?: throw NotFoundException(ErrorMessages.tagNotFound(publicId))
 
     fun create(tag: TagDTO): TagDTO = tagRepository.save(tag.toEntity()).toDTO()
 

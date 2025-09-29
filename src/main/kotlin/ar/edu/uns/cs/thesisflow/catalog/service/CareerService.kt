@@ -8,6 +8,8 @@ import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
 import ar.edu.uns.cs.thesisflow.common.ErrorMessages
+import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
+import ar.edu.uns.cs.thesisflow.common.exceptions.ValidationException
 
 @Service
 class CareerService(
@@ -20,7 +22,7 @@ class CareerService(
 
     fun findEntityByPublicId(publicId: String?) = publicId?.let {
         careerRepository.findByPublicId(UUID.fromString(it))
-    } ?: throw IllegalArgumentException(ErrorMessages.careerNotFound(publicId))
+    } ?: throw NotFoundException(ErrorMessages.careerNotFound(publicId))
 
     fun create(careerDTO: CareerDTO): CareerDTO {
         validate(careerDTO)
@@ -30,7 +32,7 @@ class CareerService(
 
     private fun validate(careerDTO: CareerDTO) {
         if (careerDTO.name.isNullOrBlank()) {
-            throw IllegalArgumentException(ErrorMessages.careerNameBlank())
+            throw ValidationException(ErrorMessages.careerNameBlank())
         }
     }
 

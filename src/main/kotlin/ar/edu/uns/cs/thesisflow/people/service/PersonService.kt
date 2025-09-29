@@ -8,6 +8,7 @@ import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
 import ar.edu.uns.cs.thesisflow.common.ErrorMessages
+import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
 
 @Service
 class PersonService(
@@ -20,7 +21,7 @@ class PersonService(
     fun findPersonByPublicId(publicId: String?) = publicId
         ?.let { UUID.fromString(it) }
         ?.let { personRepository.findByPublicId(it) }
-        ?: throw IllegalArgumentException(ErrorMessages.personNotFound(publicId))
+        ?: throw NotFoundException(ErrorMessages.personNotFound(publicId))
 
     fun create(person: PersonDTO) = person.toEntity().let { personRepository.save(it) }.toDTO()
 

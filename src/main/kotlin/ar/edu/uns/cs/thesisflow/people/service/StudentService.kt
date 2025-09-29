@@ -16,6 +16,9 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
 import java.util.*
 import ar.edu.uns.cs.thesisflow.common.ErrorMessages
+import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
+import ar.edu.uns.cs.thesisflow.common.exceptions.ConflictException
+import ar.edu.uns.cs.thesisflow.common.exceptions.ValidationException
 
 @Service
 class StudentService(
@@ -29,7 +32,7 @@ class StudentService(
     fun findByPublicId(publicId: String) = findEntityByPublicId(UUID.fromString(publicId)).toDTO()
 
     fun findEntityByPublicId(publicId: UUID) = studentRepository.findByPublicId(publicId)
-        ?: throw IllegalArgumentException(ErrorMessages.studentNotFound(publicId))
+        ?: throw NotFoundException(ErrorMessages.studentNotFound(publicId))
 
     fun create(studentDTO: StudentDTO): StudentDTO {
         val person = studentDTO.getPerson()
@@ -40,13 +43,13 @@ class StudentService(
 
     private fun checkPersonNotAssociated(person: Person) {
         studentRepository.findFirstByPerson(person)?.let {
-            throw IllegalArgumentException(ErrorMessages.personAlreadyStudent(person.publicId))
+            throw ConflictException(ErrorMessages.personAlreadyStudent(person.publicId))
         }
     }
 
     private fun StudentDTO.getPerson() =
         personPublicId?.let { personRepository.findByPublicId(UUID.fromString(it)) }
-            ?: throw IllegalArgumentException(ErrorMessages.noPersonForStudent(personPublicId))
+            ?: throw NotFoundException(ErrorMessages.noPersonForStudent(personPublicId))
 
     fun update(studentDTO: StudentDTO): StudentDTO {
         val student = findEntityByPublicId(UUID.fromString(studentDTO.publicId!!))
@@ -70,7 +73,7 @@ class StudentService(
         val existingIds = existing.mapNotNull { it.publicId }.toSet()
         val missing = requestedUUIDs.filterNot { existingIds.contains(it) }
         if (missing.isNotEmpty()) {
-            throw IllegalArgumentException(ErrorMessages.someCareersDoNotExist(missing))
+            throw NotFoundException(ErrorMessages.someCareersDoNotExist(missing))
         }
         return existing
     }

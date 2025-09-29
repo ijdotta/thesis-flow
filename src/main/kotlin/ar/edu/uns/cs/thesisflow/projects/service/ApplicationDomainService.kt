@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
+import ar.edu.uns.cs.thesisflow.common.ErrorMessages
+import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
 
 @Service
 class ApplicationDomainService(
@@ -18,7 +20,7 @@ class ApplicationDomainService(
 
     private fun findEntityByPublicId(publicId: String?) =
         publicId?.let { repository.findByPublicId(UUID.fromString(it)) }
-            ?: throw IllegalArgumentException("ApplicationDomain not found for id $publicId")
+            ?: throw NotFoundException(ErrorMessages.applicationDomainNotFound(publicId))
 
     fun create(applicationDomainDTO: ApplicationDomainDTO): ApplicationDomainDTO {
         val entity = applicationDomainDTO.toEntity()

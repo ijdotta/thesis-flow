@@ -10,6 +10,9 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
 import ar.edu.uns.cs.thesisflow.common.ValidationConstants
 import ar.edu.uns.cs.thesisflow.common.ErrorMessages
+import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
+import ar.edu.uns.cs.thesisflow.common.exceptions.ValidationException
+import ar.edu.uns.cs.thesisflow.common.exceptions.ConflictException
 
 @Service
 class ProfessorService(
@@ -21,7 +24,7 @@ class ProfessorService(
 
     private fun findEntityByPublicId(publicId: String?) =
         publicId?.let { professorRepository.findByPublicId(UUID.fromString(it)) }
-            ?: throw IllegalArgumentException(ErrorMessages.professorNotFound(publicId))
+            ?: throw NotFoundException(ErrorMessages.professorNotFound(publicId))
 
     fun create(professorDTO: ProfessorDTO): ProfessorDTO {
         validate(professorDTO)
@@ -37,20 +40,20 @@ class ProfessorService(
 
     private fun ProfessorDTO.getPerson() = personPublicId?.let {
         personRepository.findByPublicId(UUID.fromString(it))
-    } ?: throw IllegalArgumentException(ErrorMessages.noPersonForProfessor(personPublicId))
+    } ?: throw NotFoundException(ErrorMessages.noPersonForProfessor(personPublicId))
 
     private fun checkNotAssociated(personPublicId: UUID) {
         if (professorRepository.existsByPersonPublicId(personPublicId)) {
-            throw IllegalArgumentException(ErrorMessages.personAlreadyAssociated(personPublicId))
+            throw ConflictException(ErrorMessages.personAlreadyAssociated(personPublicId))
         }
     }
 
     private fun validateEmail(email: String?) {
         if (email.isNullOrBlank()) {
-            throw IllegalArgumentException(ErrorMessages.emailNullOrBlank())
+            throw ValidationException(ErrorMessages.emailNullOrBlank())
         }
         if (ValidationConstants.PROFESSOR_VALID_EMAIL_DOMAINS.none { email.endsWith(it) }) {
-            throw IllegalArgumentException(ErrorMessages.emailInvalidDomain(ValidationConstants.PROFESSOR_VALID_EMAIL_DOMAINS))
+            throw ValidationException(ErrorMessages.emailInvalidDomain(ValidationConstants.PROFESSOR_VALID_EMAIL_DOMAINS))
         }
     }
 

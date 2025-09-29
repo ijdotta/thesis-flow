@@ -1,5 +1,7 @@
 package ar.edu.uns.cs.thesisflow.projects.service
 
+import ar.edu.uns.cs.thesisflow.common.ErrorMessages
+import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
 import ar.edu.uns.cs.thesisflow.people.service.PersonService
 import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantInfo
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
@@ -43,7 +45,7 @@ class ProjectService(
 
     private fun findEntityByPublicId(id: String?) =
         id?.let { projectRepository.findByPublicId(UUID.fromString(it)) }
-            ?: throw IllegalArgumentException("Project not found for id $id")
+            ?: throw NotFoundException(ErrorMessages.projectNotFound(id))
 
     fun create(projectDTO: ProjectDTO) = projectRepository.save(projectDTO.toEntity()).toDTO()
 
