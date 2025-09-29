@@ -18,6 +18,15 @@ class ProjectController(
 ) {
     private val log = LoggerFactory.getLogger(ProjectController::class.java)
 
+    private val sortableFields = setOf(
+        "createdAt", "updatedAt", "title", "type", "initialSubmission", "completion"
+    )
+    private val pseudoFieldMapping = mapOf(
+        // Pseudo fields mapped to a real column (placeholder until implemented properly)
+        "students" to "createdAt",
+        "directors" to "createdAt"
+    )
+
     @GetMapping
     fun findAll(
         @RequestParam(required = false, defaultValue = "0") page: Int,
@@ -31,7 +40,7 @@ class ProjectController(
         @RequestParam(required = false) completed: Boolean?, // legacy alias
         @RequestParam(required = false) completion: Boolean?, // preferred param (true -> completion NOT NULL)
         @RequestParam(required = false) type: String?, // project type filter (supports synonyms & comma-separated)
-        @RequestParam(required = false) sort: String?, // e.g. createdAt,desc
+        @RequestParam(required = false) sort: String?, // e.g. createdAt,desc OR students,asc (pseudo)
     ): ResponseEntity<*> {
         val effectiveProfessor = (directors ?: professorName)?.takeIf { it.isNotBlank() }
         val effectiveStudent = (students ?: studentName)?.takeIf { it.isNotBlank() }
@@ -47,12 +56,13 @@ class ProjectController(
             type = normalizedType,
         )
 
+        val pageable = PageRequest.of(page, size, sort.toSort())
+
         log.debug(
-            "Project filter request -> page={}, size={}, title='{}', directors='{}', students='{}', domain='{}', completionFlag={}, typeRaw='{}', typeNormalized='{}'",
-            page, size, title, effectiveProfessor, effectiveStudent, domain, completionFlag, type, normalizedType
+            "Project filter request -> page={}, size={}, title='{}', directors='{}', students='{}', domain='{}', completionFlag={}, typeRaw='{}', typeNormalized='{}', sort='{}'",
+            page, size, title, effectiveProfessor, effectiveStudent, domain, completionFlag, type, normalizedType, sort
         )
 
-        val pageable = PageRequest.of(page, size, sort.toSort())
         return ResponseEntity.ok(projectService.findAll(pageable, filter))
     }
 
@@ -60,7 +70,15 @@ class ProjectController(
         if (this.isNullOrBlank()) return Sort.unsorted()
         val parts = this.split(",").map { it.trim() }.filter { it.isNotEmpty() }
         if (parts.isEmpty()) return Sort.unsorted()
-        val field = parts[0]
+        val originalField = parts[0]
+        val field = pseudoFieldMapping[originalField] ?: originalField
+        if (field != originalField) {
+            log.warn("Remapped unsupported sort field '{}' to '{}' (placeholder mapping)", originalField, field)
+        }
+        if (field !in sortableFields) {
+            log.warn("Ignoring unsupported sort field '{}' (allowed: {})", field, sortableFields.joinToString(","))
+            return Sort.unsorted()
+        }
         val direction = if (parts.size > 1) parts[1].lowercase() else "asc"
         val dir = if (direction == "desc") Sort.Direction.DESC else Sort.Direction.ASC
         return Sort.by(Sort.Order(dir, field))
