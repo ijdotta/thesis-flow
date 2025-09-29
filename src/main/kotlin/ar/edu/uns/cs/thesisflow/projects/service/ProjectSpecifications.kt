@@ -4,8 +4,10 @@ import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectParticipant
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import jakarta.persistence.criteria.JoinType
 import jakarta.persistence.criteria.Predicate
+import jakarta.persistence.criteria.Path
 import org.springframework.data.jpa.domain.Specification
 import java.time.Instant
 
@@ -18,9 +20,10 @@ data class ProjectFilter(
     val studentName: String? = null,
     val domain: String? = null,
     val completion: NullabilityFilter? = null, // derived from completed=true/false
+    val type: String? = null, // project type enum name
 ) {
     companion object { fun empty() = ProjectFilter() }
-    val isEmpty: Boolean get() = listOf(title, professorName, studentName, domain, completion).all { it == null }
+    val isEmpty: Boolean get() = listOf(title, professorName, studentName, domain, completion, type).all { it == null }
 }
 
 object ProjectSpecifications {
@@ -31,16 +34,29 @@ object ProjectSpecifications {
             query?.distinct(true) // safe call for platform type
             val predicates = mutableListOf<Predicate>()
 
+            // Title LIKE
             filter.title?.takeIf { it.isNotBlank() }?.let { t ->
                 val pattern = "%${t.lowercase()}%"
                 predicates += cb.like(cb.lower(root.get("title")), pattern)
             }
 
+            // Type equality or IN (comma separated list supported)
+            filter.type?.takeIf { it.isNotBlank() }?.let { raw ->
+                val typeNames = raw.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+                val enums = typeNames.mapNotNull { runCatching { ProjectType.valueOf(it) }.getOrNull() }.distinct()
+                when {
+                    enums.size == 1 -> predicates += cb.equal(root.get<ProjectType>("type"), enums.first())
+                    enums.isNotEmpty() -> predicates += root.get<ProjectType>("type").`in`(enums)
+                }
+            }
+
+            // Domain name LIKE
             filter.domain?.takeIf { it.isNotBlank() }?.let { d ->
                 val joinDomain = root.join<Project, Any>("applicationDomain", JoinType.LEFT)
                 predicates += cb.like(cb.lower(joinDomain.get("name")), "%${d.lowercase()}%")
             }
 
+            // Completion nullability
             filter.completion?.let { nf ->
                 predicates += when (nf) {
                     NullabilityFilter.NULL -> cb.isNull(root.get<Instant?>("completion"))
@@ -48,28 +64,54 @@ object ProjectSpecifications {
                 }
             }
 
-            filter.professorName?.takeIf { it.isNotBlank() }?.let { nameFragment ->
-                val fragment = "%${nameFragment.lowercase()}%"
-                val joinParticipant = root.join<Project, ProjectParticipant>("participants", JoinType.LEFT)
-                val joinPerson = joinParticipant.join<ProjectParticipant, Person>("person", JoinType.LEFT)
-                val rolePath = joinParticipant.get<ParticipantRole>("participantRole")
-                val namePredicate = cb.or(
-                    cb.like(cb.lower(joinPerson.get("name")), fragment),
-                    cb.like(cb.lower(joinPerson.get("lastname")), fragment)
-                )
-                predicates += cb.and(rolePath.`in`(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR), namePredicate)
+            // Helper to build OR of name/lastname LIKE for multiple fragments
+            fun personNamePredicate(fragments: List<String>, personPath: Path<Person>): Predicate {
+                val likePreds = fragments.map { frag ->
+                    val pat = "%${frag.lowercase()}%"
+                    cb.or(
+                        cb.like(cb.lower(personPath.get<String>("name")), pat),
+                        cb.like(cb.lower(personPath.get<String>("lastname")), pat)
+                    )
+                }
+                return cb.or(*likePreds.toTypedArray())
             }
 
-            filter.studentName?.takeIf { it.isNotBlank() }?.let { nameFragment ->
-                val fragment = "%${nameFragment.lowercase()}%"
-                val joinParticipant = root.join<Project, ProjectParticipant>("participants", JoinType.LEFT)
-                val joinPerson = joinParticipant.join<ProjectParticipant, Person>("person", JoinType.LEFT)
-                val rolePath = joinParticipant.get<ParticipantRole>("participantRole")
-                val namePredicate = cb.or(
-                    cb.like(cb.lower(joinPerson.get("name")), fragment),
-                    cb.like(cb.lower(joinPerson.get("lastname")), fragment)
-                )
-                predicates += cb.and(rolePath.`in`(ParticipantRole.STUDENT), namePredicate)
+            // Professor (director / co-director) name fragment(s) via EXISTS subquery
+            filter.professorName?.takeIf { it.isNotBlank() }?.let { rawFragments ->
+                val fragments = rawFragments.split(',', ' ').map { it.trim() }.filter { it.isNotEmpty() }
+                if (fragments.isNotEmpty()) {
+                    val sub = query?.subquery(Long::class.java)
+                    if (sub != null) {
+                        val pp = sub.from(ProjectParticipant::class.java)
+                        val person = pp.join<ProjectParticipant, Person>("person", JoinType.LEFT)
+                        val namePred = personNamePredicate(fragments, person)
+                        sub.select(cb.literal(1L)).where(
+                            cb.equal(pp.get<Project>("project"), root),
+                            pp.get<ParticipantRole>("participantRole").`in`(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR),
+                            namePred
+                        )
+                        predicates += cb.exists(sub)
+                    }
+                }
+            }
+
+            // Student name fragment(s) via EXISTS subquery
+            filter.studentName?.takeIf { it.isNotBlank() }?.let { rawFragments ->
+                val fragments = rawFragments.split(',', ' ').map { it.trim() }.filter { it.isNotEmpty() }
+                if (fragments.isNotEmpty()) {
+                    val sub = query?.subquery(Long::class.java)
+                    if (sub != null) {
+                        val pp = sub.from(ProjectParticipant::class.java)
+                        val person = pp.join<ProjectParticipant, Person>("person", JoinType.LEFT)
+                        val namePred = personNamePredicate(fragments, person)
+                        sub.select(cb.literal(1L)).where(
+                            cb.equal(pp.get<Project>("project"), root),
+                            pp.get<ParticipantRole>("participantRole").`in`(ParticipantRole.STUDENT),
+                            namePred
+                        )
+                        predicates += cb.exists(sub)
+                    }
+                }
             }
 
             cb.and(*predicates.toTypedArray())

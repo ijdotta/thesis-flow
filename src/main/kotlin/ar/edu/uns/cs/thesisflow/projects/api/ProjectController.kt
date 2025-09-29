@@ -7,36 +7,89 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import ar.edu.uns.cs.thesisflow.projects.service.ProjectFilter
 import ar.edu.uns.cs.thesisflow.projects.service.NullabilityFilter
+import org.springframework.data.domain.Sort
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
+import org.slf4j.LoggerFactory
 
 @RestController
 @RequestMapping("/projects")
 class ProjectController(
     private val projectService: ProjectService
 ) {
+    private val log = LoggerFactory.getLogger(ProjectController::class.java)
+
     @GetMapping
     fun findAll(
         @RequestParam(required = false, defaultValue = "0") page: Int,
         @RequestParam(required = false, defaultValue = "25") size: Int,
         @RequestParam(required = false) title: String?,
         @RequestParam(name = "professor.name", required = false) professorName: String?,
+        @RequestParam(required = false) directors: String?, // alias for professorName
         @RequestParam(name = "student.name", required = false) studentName: String?,
+        @RequestParam(required = false) students: String?, // alias for studentName
         @RequestParam(required = false) domain: String?,
-        @RequestParam(required = false) completed: Boolean?, // completed=true -> completion NOT NULL; false -> completion NULL
+        @RequestParam(required = false) completed: Boolean?, // legacy alias
+        @RequestParam(required = false) completion: Boolean?, // preferred param (true -> completion NOT NULL)
+        @RequestParam(required = false) type: String?, // project type filter (supports synonyms & comma-separated)
+        @RequestParam(required = false) sort: String?, // e.g. createdAt,desc
     ): ResponseEntity<*> {
+        val effectiveProfessor = (directors ?: professorName)?.takeIf { it.isNotBlank() }
+        val effectiveStudent = (students ?: studentName)?.takeIf { it.isNotBlank() }
+        val completionFlag = completion ?: completed // prefer 'completion'
+        val normalizedType = normalizeTypeParam(type)
+
         val filter = ProjectFilter(
             title = title?.takeIf { it.isNotBlank() },
-            professorName = professorName?.takeIf { it.isNotBlank() },
-            studentName = studentName?.takeIf { it.isNotBlank() },
+            professorName = effectiveProfessor,
+            studentName = effectiveStudent,
             domain = domain?.takeIf { it.isNotBlank() },
-            completion = completed.toNullabilityFilter(),
+            completion = completionFlag.toNullabilityFilter(),
+            type = normalizedType,
         )
-        return ResponseEntity.ok(projectService.findAll(PageRequest.of(page, size), filter))
+
+        log.debug(
+            "Project filter request -> page={}, size={}, title='{}', directors='{}', students='{}', domain='{}', completionFlag={}, typeRaw='{}', typeNormalized='{}'",
+            page, size, title, effectiveProfessor, effectiveStudent, domain, completionFlag, type, normalizedType
+        )
+
+        val pageable = PageRequest.of(page, size, sort.toSort())
+        return ResponseEntity.ok(projectService.findAll(pageable, filter))
+    }
+
+    private fun String?.toSort(): Sort {
+        if (this.isNullOrBlank()) return Sort.unsorted()
+        val parts = this.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        if (parts.isEmpty()) return Sort.unsorted()
+        val field = parts[0]
+        val direction = if (parts.size > 1) parts[1].lowercase() else "asc"
+        val dir = if (direction == "desc") Sort.Direction.DESC else Sort.Direction.ASC
+        return Sort.by(Sort.Order(dir, field))
     }
 
     private fun Boolean?.toNullabilityFilter(): NullabilityFilter? = when (this) {
         null -> null
         true -> NullabilityFilter.NOT_NULL
         false -> NullabilityFilter.NULL
+    }
+
+    // Map incoming type param to canonical enum names, supporting synonyms & multiple values
+    private fun normalizeTypeParam(raw: String?): String? {
+        if (raw.isNullOrBlank()) return null
+        val synonyms = mapOf(
+            "PROJECT" to ProjectType.FINAL_PROJECT.name,
+            "FINALPROJECT" to ProjectType.FINAL_PROJECT.name,
+            "FINAL-PROJECT" to ProjectType.FINAL_PROJECT.name,
+            "FINAL_PROYECTO" to ProjectType.FINAL_PROJECT.name, // potential localization
+            "TESIS" to ProjectType.THESIS.name // Spanish variant
+        )
+        val canon = raw.split(',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .map { it.uppercase() }
+            .map { synonyms[it] ?: it }
+            .mapNotNull { value -> runCatching { ProjectType.valueOf(value).name }.getOrNull() }
+            .distinct()
+        return if (canon.isEmpty()) null else canon.joinToString(",")
     }
 
     @GetMapping("/{id}")
