@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.data.domain.PageRequest
 
 @RestController
 @RequestMapping("/careers")
@@ -17,7 +19,10 @@ class CareerController(
     private val careerService: CareerService
 ) {
     @GetMapping
-    fun findAll() = ResponseEntity.ok(careerService.findAll())
+    fun findAll(
+        @RequestParam(required = false, defaultValue = "0") page: Int,
+        @RequestParam(required = false, defaultValue = "25") size: Int,
+    ) = ResponseEntity.ok(careerService.findAll(PageRequest.of(page, size)))
 
     @GetMapping("/{publicId}")
     fun findById(@PathVariable publicId: String) = careerService.findByPublicId(publicId)

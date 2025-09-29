@@ -32,14 +32,21 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-//    implementation("org.flywaydb:flyway-core")
+    // Updated Flyway dependencies (core + PostgreSQL & H2 database support) pinned to newer version supporting Postgres 17
+    implementation("org.flywaydb:flyway-core:10.18.2")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql:10.18.2")
+    testImplementation("org.flywaydb:flyway-database-h2:10.18.2")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")
     annotationProcessor("org.projectlombok:lombok")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("com.h2database:h2")
+    testImplementation("io.mockk:mockk:1.13.12")
+    testImplementation("org.assertj:assertj-core:3.26.3")
 }
 
 kotlin {

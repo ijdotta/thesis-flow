@@ -1,23 +1,18 @@
 package ar.edu.uns.cs.thesisflow.projects.persistance.entity
 
+import ar.edu.uns.cs.thesisflow.common.persistence.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.Table
-import java.util.UUID
 
 @Entity
-@Table(indexes = [Index(name = "public_id", columnList = "public_id")])
+@Table(
+    indexes = [Index(name = "idx_tag_public_id", columnList = "public_id"), Index(name = "idx_tag_name", columnList = "name")]
+)
 class Tag(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null,
-    @Column(unique = true, nullable = false, updatable = false)
-    val publicId: UUID = UUID.randomUUID(),
-    @Column(unique = true, nullable = false, updatable = false)
+    @Column(unique = true, nullable = false)
     var name: String,
     @Column(nullable = true)
     var description: String? = null,
-)
+) : BaseEntity()

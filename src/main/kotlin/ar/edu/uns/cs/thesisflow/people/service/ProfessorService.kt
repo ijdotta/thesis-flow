@@ -6,6 +6,8 @@ import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
 import org.springframework.stereotype.Service
 import java.util.UUID
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Page
 
 @Service
 class ProfessorService(
@@ -19,7 +21,7 @@ class ProfessorService(
         )
     }
 
-    fun findAll() = professorRepository.findAll().map { it.toDTO() }
+    fun findAll(pageable: Pageable): Page<ProfessorDTO> = professorRepository.findAll(pageable).map { it.toDTO() }
     fun findByPublicId(publicId: String) = findEntityByPublicId(publicId).toDTO()
 
     private fun findEntityByPublicId(publicId: String?) =

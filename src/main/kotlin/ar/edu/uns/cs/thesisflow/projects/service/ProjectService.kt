@@ -12,6 +12,8 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectParticipa
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
 import jakarta.transaction.Transactional
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -23,7 +25,19 @@ class ProjectService(
     private val projectParticipantRepository: ProjectParticipantRepository,
     private val personService: PersonService,
 ) {
-    fun findAll() = projectRepository.findAll().map { it.toDTO() }
+    fun findAll(pageable: Pageable): Page<ProjectDTO> =
+        findAll(pageable, ProjectFilter.empty())
+
+    fun findAll(pageable: Pageable, filter: ProjectFilter): Page<ProjectDTO> {
+        val spec = ProjectSpecifications.withFilter(filter)
+        return projectRepository.findAll(spec, pageable).map { it.withEnrichedParticipants() }
+    }
+
+    private fun Project.withEnrichedParticipants(): ProjectDTO {
+        val participants = projectParticipantRepository.findAllByProject(this)
+        val participantDTOs = participants.map { p -> p.toDTO() }
+        return this.toDTO(participantDTOs)
+    }
 
     fun findByPublicId(id: String?) = findEntityByPublicId(id).toDTO()
 

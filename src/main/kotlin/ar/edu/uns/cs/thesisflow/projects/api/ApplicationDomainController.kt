@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.data.domain.PageRequest
 
 @RestController
 @RequestMapping("/application-domains")
@@ -18,7 +20,10 @@ class ApplicationDomainController(
 ) {
 
     @GetMapping
-    fun findAll() = ResponseEntity.ok(service.findAll())
+    fun findAll(
+        @RequestParam(required = false, defaultValue = "0") page: Int,
+        @RequestParam(required = false, defaultValue = "25") size: Int,
+    ) = ResponseEntity.ok(service.findAll(PageRequest.of(page, size)))
 
     @GetMapping("/{publicId}")
     fun findByPublicId(@PathVariable publicId: String) =

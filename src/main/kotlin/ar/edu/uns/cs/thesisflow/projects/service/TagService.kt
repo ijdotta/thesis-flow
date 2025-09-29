@@ -5,12 +5,14 @@ import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
 import org.springframework.stereotype.Service
 import java.util.UUID
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Page
 
 @Service
 class TagService(
     val tagRepository: TagRepository
 ) {
-    fun findAll() = tagRepository.findAll().map { it.toDTO() }
+    fun findAll(pageable: Pageable): Page<TagDTO> = tagRepository.findAll(pageable).map { it.toDTO() }
 
     fun findByPublicId(publicId: String?) = findEntityByPublicId(publicId).toDTO()
 

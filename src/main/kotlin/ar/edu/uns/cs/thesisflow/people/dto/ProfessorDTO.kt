@@ -7,6 +7,8 @@ data class ProfessorDTO(
     val id: Long? = null,
     val publicId: String? = null,
     val personPublicId: String? = null,
+    val name: String? = null,
+    val lastname: String? = null,
     val email: String? = null,
 ) {
     fun toEntity(person: Person) = Professor(person = person, email = email!!)
@@ -19,5 +21,7 @@ fun Professor.toDTO() = ProfessorDTO(
     id = id,
     publicId = publicId.toString(),
     personPublicId = person.publicId.toString(),
+    name = person.name,
+    lastname = person.lastname,
     email = email
 )
