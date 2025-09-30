@@ -12,7 +12,8 @@ import java.util.UUID
     componentModel = "spring",
     uses = [ApplicationDomainMapper::class, TagMapper::class]
 )
-interface ProjectMapper {
+@Suppress("unused") // MapStruct invoked methods may appear unused to the Kotlin compiler
+abstract class ProjectMapper {
 
     @Mappings(
         Mapping(target = "publicId", source = "publicId", qualifiedByName = ["projectUuidToString"]),
@@ -22,7 +23,7 @@ interface ProjectMapper {
         Mapping(target = "tags", source = "tags"),
         Mapping(target = "participants", ignore = true),
     )
-    fun toDto(entity: Project): ProjectDTO
+    abstract fun toDto(entity: Project): ProjectDTO
 
     @Mappings(
         Mapping(target = "id", ignore = true),
@@ -35,7 +36,7 @@ interface ProjectMapper {
         Mapping(target = "createdAt", ignore = true),
         Mapping(target = "updatedAt", ignore = true),
     )
-    fun toEntity(dto: ProjectDTO): Project
+    abstract fun toEntity(dto: ProjectDTO): Project
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mappings(
@@ -49,28 +50,28 @@ interface ProjectMapper {
         Mapping(target = "type", source = "type", qualifiedByName = ["nameToType"]),
         Mapping(target = "subType", source = "subtype", qualifiedByName = ["listToSubtypeSet"]),
     )
-    fun updateEntityFromDto(dto: ProjectDTO, @MappingTarget entity: Project)
+    abstract fun updateEntityFromDto(dto: ProjectDTO, @MappingTarget entity: Project)
 
     @AfterMapping
-    fun afterToEntity(dto: ProjectDTO, @MappingTarget entity: Project) {
+    protected fun afterToEntity(dto: ProjectDTO, @MappingTarget entity: Project) {
         dto.initialSubmission?.let { entity.initialSubmission = it }
         entity.completion = dto.completion
         entity.updatedAt = Instant.now()
     }
 
     @Named("projectUuidToString")
-    fun projectUuidToString(uuid: UUID?): String? = uuid?.toString()
+    protected fun projectUuidToString(uuid: UUID?): String? = uuid?.toString()
 
     @Named("enumToName")
-    fun enumToName(e: Enum<*>?): String? = e?.name
+    protected fun enumToName(e: Enum<*>?): String? = e?.name
 
     @Named("subtypeSetToList")
-    fun subtypeSetToList(set: Set<ProjectSubType>?): List<String>? = set?.map { it.name }
+    protected fun subtypeSetToList(set: Set<ProjectSubType>?): List<String>? = set?.map { it.name }
 
     @Named("nameToType")
-    fun nameToType(name: String?): ProjectType? = name?.let { ProjectType.valueOf(it) }
+    protected fun nameToType(name: String?): ProjectType? = name?.let { ProjectType.valueOf(it) }
 
     @Named("listToSubtypeSet")
-    fun listToSubtypeSet(list: List<String>?): MutableSet<ProjectSubType> =
+    protected fun listToSubtypeSet(list: List<String>?): MutableSet<ProjectSubType> =
         list?.map { ProjectSubType.valueOf(it) }?.toMutableSet() ?: mutableSetOf()
 }

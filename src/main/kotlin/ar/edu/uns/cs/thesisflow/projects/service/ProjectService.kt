@@ -3,8 +3,8 @@ package ar.edu.uns.cs.thesisflow.projects.service
 import ar.edu.uns.cs.thesisflow.common.ErrorMessages
 import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
 import ar.edu.uns.cs.thesisflow.people.service.PersonService
-import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantDTO
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
+import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantInfo
 import ar.edu.uns.cs.thesisflow.projects.mapper.ParticipantMapper
 import ar.edu.uns.cs.thesisflow.projects.mapper.ProjectMapper
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole

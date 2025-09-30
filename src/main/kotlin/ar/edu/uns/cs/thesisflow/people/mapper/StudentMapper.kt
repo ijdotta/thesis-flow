@@ -9,7 +9,7 @@ import java.util.UUID
 @Mapper(componentModel = "spring")
 interface StudentMapper {
     @Mappings(
-        Mapping(target = "personPublicId", source = "person.publicId"),
+        Mapping(target = "personPublicId", source = "person.publicId", qualifiedByName = ["uuidToString"]),
         Mapping(target = "name", source = "person.name"),
         Mapping(target = "lastname", source = "person.lastname"),
         Mapping(target = "publicId", source = "publicId", qualifiedByName = ["uuidToString"]),
@@ -29,10 +29,6 @@ interface StudentMapper {
         Mapping(target = "id", ignore = true),
         Mapping(target = "publicId", ignore = true),
         Mapping(target = "person", ignore = true),
-        Mapping(target = "personPublicId", ignore = true),
-        Mapping(target = "name", ignore = true),
-        Mapping(target = "lastname", ignore = true),
-        Mapping(target = "careers", ignore = true),
     )
     fun updateEntityFromDto(dto: StudentDTO, @MappingTarget entity: Student)
 
