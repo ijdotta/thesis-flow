@@ -3,9 +3,10 @@ package ar.edu.uns.cs.thesisflow.projects.service
 import ar.edu.uns.cs.thesisflow.common.ErrorMessages
 import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
 import ar.edu.uns.cs.thesisflow.people.service.PersonService
-import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantInfo
+import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantDTO
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
-import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
+import ar.edu.uns.cs.thesisflow.projects.mapper.ParticipantMapper
+import ar.edu.uns.cs.thesisflow.projects.mapper.ProjectMapper
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectParticipant
@@ -26,33 +27,31 @@ class ProjectService(
     private val tagRepository: TagRepository,
     private val projectParticipantRepository: ProjectParticipantRepository,
     private val personService: PersonService,
+    private val projectMapper: ProjectMapper,
+    private val participantMapper: ParticipantMapper,
 ) {
     fun findAll(pageable: Pageable): Page<ProjectDTO> =
         findAll(pageable, ProjectFilter.empty())
 
     fun findAll(pageable: Pageable, filter: ProjectFilter): Page<ProjectDTO> {
         val spec = ProjectSpecifications.withFilter(filter)
-        return projectRepository.findAll(spec, pageable).map { it.withEnrichedParticipants() }
+        return projectRepository.findAll(spec, pageable).map { it.toDtoWithParticipants() }
     }
 
-    private fun Project.withEnrichedParticipants(): ProjectDTO {
-        val participants = projectParticipantRepository.findAllByProject(this)
-        val participantDTOs = participants.map { p -> p.toDTO() }
-        return this.toDTO(participantDTOs)
-    }
-
-    fun findByPublicId(id: String?) = findEntityByPublicId(id).toDTO()
+    fun findByPublicId(id: String?) = projectMapper.toDto(findEntityByPublicId(id)).withParticipants(id)
 
     private fun findEntityByPublicId(id: String?) =
         id?.let { projectRepository.findByPublicId(UUID.fromString(it)) }
             ?: throw NotFoundException(ErrorMessages.projectNotFound(id))
 
-    fun create(projectDTO: ProjectDTO) = projectRepository.save(projectDTO.toEntity()).toDTO()
+    fun create(projectDTO: ProjectDTO) = projectMapper.toEntity(projectDTO)
+        .let { projectRepository.save(it) }
+        .let { projectMapper.toDto(it) }
 
     fun update(id: String, projectDTO: ProjectDTO): ProjectDTO {
         val entity = findEntityByPublicId(id)
-        projectDTO.update(entity)
-        return projectRepository.save(entity).toDTO()
+        projectMapper.updateEntityFromDto(projectDTO, entity)
+        return projectRepository.save(entity).toDtoWithParticipants()
     }
 
     @Transactional
@@ -60,23 +59,36 @@ class ProjectService(
         val entity = findEntityByPublicId(id)
         val domain = applicationDomainRepository.findByPublicId(UUID.fromString(domainId))
         entity.applicationDomain = domain
-        return projectRepository.save(entity).toDTO()
+        return projectRepository.save(entity).toDtoWithParticipants()
     }
 
     @Transactional
     fun setTags(id: String, tagIds: List<String>): ProjectDTO {
         val entity = findEntityByPublicId(id)
-        val tags = tagIds.asUUIDs().let { tagRepository.findAllByPublicIdIn(it) }.toMutableSet()
+        val tags = tagIds.map { UUID.fromString(it) }.let { tagRepository.findAllByPublicIdIn(it) }.toMutableSet()
         entity.tags = tags
-        return projectRepository.save(entity).toDTO()
+        return projectRepository.save(entity).toDtoWithParticipants()
     }
 
     @Transactional
     fun setParticipants(id: String, participantInfos: List<ParticipantInfo>): ProjectDTO {
         val project = findEntityByPublicId(id)
         val participants = participantInfos.map { it.toProjectParticipantEntity(project) }
-        val participantDTOs = projectParticipantRepository.saveAll(participants).map { it.toDTO() }
-        return project.toDTO(participantDTOs)
+        projectParticipantRepository.saveAll(participants)
+        return project.toDtoWithParticipants()
+    }
+
+    private fun Project.toDtoWithParticipants(): ProjectDTO {
+        val participantDTOs = projectParticipantRepository.findAllByProject(this).map { participantMapper.toDto(it) }
+        val baseDto = projectMapper.toDto(this)
+        return baseDto.copy(participants = participantDTOs)
+    }
+
+    private fun ProjectDTO.withParticipants(id: String?): ProjectDTO {
+        if (id == null) return this
+        val project = findEntityByPublicId(id)
+        val participantDTOs = projectParticipantRepository.findAllByProject(project).map { participantMapper.toDto(it) }
+        return this.copy(participants = participantDTOs)
     }
 
     private fun ParticipantInfo.toProjectParticipantEntity(project: Project) = ProjectParticipant(
@@ -85,5 +97,3 @@ class ProjectService(
         participantRole = ParticipantRole.valueOf(roleName),
     )
 }
-
-private fun List<String>.asUUIDs() = this.map { UUID.fromString(it) }

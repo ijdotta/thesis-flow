@@ -4,6 +4,7 @@ plugins {
     id("org.springframework.boot") version "3.5.5"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version "1.9.25"
+    kotlin("kapt") version "1.9.25"
 }
 
 group = "ar.edu.uns.cs"
@@ -47,6 +48,9 @@ dependencies {
     testImplementation("com.h2database:h2")
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("org.assertj:assertj-core:3.26.3")
+
+    implementation("org.mapstruct:mapstruct:1.5.5.Final")
+    kapt("org.mapstruct:mapstruct-processor:1.5.5.Final")
 }
 
 kotlin {

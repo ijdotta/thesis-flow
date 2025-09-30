@@ -1,7 +1,6 @@
 package ar.edu.uns.cs.thesisflow.people.service
 
 import ar.edu.uns.cs.thesisflow.people.dto.ProfessorDTO
-import ar.edu.uns.cs.thesisflow.people.dto.toDTO
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
 import org.springframework.stereotype.Service
@@ -13,14 +12,16 @@ import ar.edu.uns.cs.thesisflow.common.ErrorMessages
 import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
 import ar.edu.uns.cs.thesisflow.common.exceptions.ValidationException
 import ar.edu.uns.cs.thesisflow.common.exceptions.ConflictException
+import ar.edu.uns.cs.thesisflow.people.mapper.ProfessorMapper
 
 @Service
 class ProfessorService(
     private val professorRepository: ProfessorRepository,
-    private val personRepository: PersonRepository
+    private val personRepository: PersonRepository,
+    private val professorMapper: ProfessorMapper,
 ) {
-    fun findAll(pageable: Pageable): Page<ProfessorDTO> = professorRepository.findAll(pageable).map { it.toDTO() }
-    fun findByPublicId(publicId: String) = findEntityByPublicId(publicId).toDTO()
+    fun findAll(pageable: Pageable): Page<ProfessorDTO> = professorRepository.findAll(pageable).map { professorMapper.toDto(it) }
+    fun findByPublicId(publicId: String) = professorMapper.toDto(findEntityByPublicId(publicId))
 
     private fun findEntityByPublicId(publicId: String?) =
         publicId?.let { professorRepository.findByPublicId(UUID.fromString(it)) }
@@ -29,8 +30,8 @@ class ProfessorService(
     fun create(professorDTO: ProfessorDTO): ProfessorDTO {
         validate(professorDTO)
         val person = professorDTO.getPerson()
-        val professor = professorDTO.toEntity(person)
-        return professorRepository.save(professor).toDTO()
+        val professor = professorMapper.toEntity(professorDTO, person)
+        return professorRepository.save(professor).let { professorMapper.toDto(it) }
     }
 
     private fun validate(professorDTO: ProfessorDTO) {
@@ -64,7 +65,7 @@ class ProfessorService(
             val person = professorDTO.getPerson()
             professor.person = person
         }
-        professorDTO.update(professor)
-        return professorRepository.save(professor).toDTO()
+        professorMapper.updateEntityFromDto(professorDTO, professor)
+        return professorRepository.save(professor).let { professorMapper.toDto(it) }
     }
 }
