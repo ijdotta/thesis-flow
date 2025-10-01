@@ -3,18 +3,14 @@ package ar.edu.uns.cs.thesisflow.projects.dto
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ApplicationDomain
 
 data class ApplicationDomainDTO(
-    val publicId: String? = null,
-    val name: String? = null,
-    val description: String? = null,
+    var publicId: String? = null,
+    var name: String? = null,
+    var description: String? = null,
 ) {
-    fun toEntity() = ApplicationDomain(
-        name = name!!,
-        description = description,
-    )
-
-    fun update(applicationDomain: ApplicationDomain) {
-        name?.let { applicationDomain.name = it }
-        description?.let { applicationDomain.description = it }
+    fun toEntity() = ApplicationDomain(name = name!!, description = description)
+    fun update(entity: ApplicationDomain) {
+        name?.let { entity.name = it }
+        description?.let { entity.description = it }
     }
 }
 

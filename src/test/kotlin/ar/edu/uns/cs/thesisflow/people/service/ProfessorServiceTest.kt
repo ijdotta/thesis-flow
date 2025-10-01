@@ -1,5 +1,6 @@
 package ar.edu.uns.cs.thesisflow.people.service
 
+import ar.edu.uns.cs.thesisflow.common.exceptions.ValidationException
 import ar.edu.uns.cs.thesisflow.people.dto.ProfessorDTO
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
@@ -39,6 +40,6 @@ class ProfessorServiceTest @Autowired constructor(
     fun `create rejects invalid email domain`() {
         val person = personRepository.save(Person(name = "Bad", lastname = "Email"))
         val dto = ProfessorDTO(personPublicId = person.publicId.toString(), email = "bad@example.com")
-        assertThatThrownBy { service.create(dto) }.isInstanceOf(IllegalArgumentException::class.java)
+        assertThatThrownBy { service.create(dto) }.isInstanceOf(ValidationException::class.java)
     }
 }

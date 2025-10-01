@@ -1,5 +1,6 @@
 package ar.edu.uns.cs.thesisflow.people.service
 
+import ar.edu.uns.cs.thesisflow.common.exceptions.NotFoundException
 import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
 import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
 import ar.edu.uns.cs.thesisflow.people.dto.StudentDTO
@@ -37,7 +38,7 @@ class StudentServiceTest @Autowired constructor(
     @Test
     fun `create fails if person missing`() {
         val dto = StudentDTO(personPublicId = UUID.randomUUID().toString(), studentId = "S2", email = "e@e.com")
-        assertThatThrownBy { service.create(dto) }.isInstanceOf(IllegalArgumentException::class.java)
+        assertThatThrownBy { service.create(dto) }.isInstanceOf(NotFoundException::class.java)
     }
 
     @Test

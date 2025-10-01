@@ -12,16 +12,18 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.data.domain.PageRequest
+import ar.edu.uns.cs.thesisflow.common.ApiPaths
+import ar.edu.uns.cs.thesisflow.common.PaginationDefaults
 
 @RestController
-@RequestMapping("/careers")
+@RequestMapping(ApiPaths.CAREERS)
 class CareerController(
     private val careerService: CareerService
 ) {
     @GetMapping
     fun findAll(
-        @RequestParam(required = false, defaultValue = "0") page: Int,
-        @RequestParam(required = false, defaultValue = "25") size: Int,
+        @RequestParam(required = false, defaultValue = PaginationDefaults.PAGE_STRING) page: Int,
+        @RequestParam(required = false, defaultValue = PaginationDefaults.SIZE_STRING) size: Int,
     ) = ResponseEntity.ok(careerService.findAll(PageRequest.of(page, size)))
 
     @GetMapping("/{publicId}")
