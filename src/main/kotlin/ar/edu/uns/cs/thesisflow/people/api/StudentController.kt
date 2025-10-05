@@ -34,6 +34,7 @@ class StudentController(
     }
 
     @PutMapping("/{publicId}/careers")
-    fun updateCareers(@PathVariable publicId: String, @RequestBody careerIds: List<String>) = ResponseEntity
-        .ok(studentService.updateCareers(publicId, careerIds))
+    fun updateCareers(@PathVariable publicId: String, @RequestBody updateCareersRequest: UpdateCareersRequest) = ResponseEntity
+        .ok(studentService.updateCareers(publicId, updateCareersRequest.careers))
 }
+
