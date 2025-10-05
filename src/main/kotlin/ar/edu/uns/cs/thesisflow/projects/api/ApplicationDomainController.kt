@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.data.domain.PageRequest
+import org.springframework.web.bind.annotation.DeleteMapping
 
 @RestController
 @RequestMapping("/application-domains")
@@ -35,4 +36,7 @@ class ApplicationDomainController(
     @PutMapping("/{publicId}")
     fun update(@PathVariable publicId: String, @RequestBody entity: ApplicationDomainDTO) =
         ResponseEntity.ok(service.update(publicId, entity))
+
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable("id") id: String) = service.delete(id)
 }
