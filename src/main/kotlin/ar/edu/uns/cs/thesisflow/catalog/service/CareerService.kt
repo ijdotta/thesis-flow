@@ -44,10 +44,8 @@ class CareerService(
 
     fun delete(id: String) {
         val career = findEntityByPublicId(id)
-        studentCareerRepository.findAllByCareer(career)?.let {
-            if (it.isNotEmpty()) {
-                throw IllegalStateException("Cannot delete career $id because is associated to one or more students")
-            }
+        studentCareerRepository.findFirstByCareer(career)?.let {
+            throw IllegalStateException("Cannot delete career $id because is associated to one or more students")
         }
         careerRepository.delete(career)
     }

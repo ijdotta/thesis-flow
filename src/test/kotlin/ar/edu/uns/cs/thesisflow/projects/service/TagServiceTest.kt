@@ -12,7 +12,7 @@ import org.springframework.data.domain.PageRequest
 class TagServiceTest @Autowired constructor(
     private val repository: TagRepository
 ) {
-    private val service = TagService(repository)
+    private val service = TagService(repository, projectRepository)
 
     @Test
     fun `findAll returns page of DTOs`() {
