@@ -49,8 +49,8 @@ INSERT INTO project (public_id, title, type, initial_submission, completion, app
  CURRENT_DATE,
  NULL,
  (SELECT id FROM application_domain WHERE public_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1'),
- CURRENT_DATE,
- CURRENT_DATE
+ CURRENT_TIMESTAMP,
+ CURRENT_TIMESTAMP
 );
 
 -- PROJECT SUBTYPES
@@ -75,8 +75,8 @@ INSERT INTO project (public_id, title, type, initial_submission, completion, app
  CURRENT_DATE,
  NULL,
  (SELECT id FROM application_domain WHERE public_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2'),
- CURRENT_DATE,
- CURRENT_DATE
+ CURRENT_TIMESTAMP,
+ CURRENT_TIMESTAMP
 );
 INSERT INTO project_subtypes (project_id, sub_type)
 VALUES ((SELECT id FROM project WHERE public_id='88888888-8888-8888-8888-888888888888'), 'TYPE_2');

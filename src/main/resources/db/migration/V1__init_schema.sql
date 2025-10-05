@@ -58,7 +58,7 @@ CREATE TABLE professor (
 CREATE INDEX idx_professor_public_id ON professor(public_id);
 CREATE INDEX idx_professor_email ON professor(email);
 
--- PROJECT (date-only fields)
+-- PROJECT (date-only vs timestamp fields)
 CREATE TABLE project (
     id BIGSERIAL PRIMARY KEY,
     public_id UUID NOT NULL UNIQUE,
@@ -67,8 +67,8 @@ CREATE TABLE project (
     initial_submission DATE NOT NULL,
     completion DATE NULL,
     application_domain_id BIGINT NULL REFERENCES application_domain(id) ON DELETE SET NULL,
-    created_at DATE NOT NULL,
-    updated_at DATE NOT NULL
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
 );
 CREATE INDEX idx_project_public_id ON project(public_id);
 
