@@ -15,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
-import java.time.Instant
+import java.time.LocalDate
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -43,7 +43,7 @@ class ProjectControllerIntegrationTest @Autowired constructor(
                 type = ProjectType.THESIS,
                 subType = mutableSetOf(ProjectSubType.TYPE_1),
                 applicationDomain = domain,
-                completion = Instant.now()
+                completion = LocalDate.now()
             )
         )
         inProgress = projectRepository.save(

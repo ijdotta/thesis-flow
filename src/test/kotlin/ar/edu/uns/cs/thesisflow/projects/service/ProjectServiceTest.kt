@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.data.domain.PageRequest
-import java.time.Instant
+import java.time.LocalDate
 
 @DataJpaTest
 @Suppress("unused")
@@ -53,7 +53,7 @@ class ProjectServiceTest @Autowired constructor(
             title = "New",
             type = ProjectType.THESIS.name,
             subtype = listOf(ProjectSubType.TYPE_1.name),
-            initialSubmission = Instant.now()
+            initialSubmission = LocalDate.now()
         )
         val created = projectService.create(dto)
         assertThat(created.title).isEqualTo("New")

@@ -9,7 +9,7 @@ import jakarta.persistence.criteria.JoinType
 import jakarta.persistence.criteria.Predicate
 import jakarta.persistence.criteria.Path
 import org.springframework.data.jpa.domain.Specification
-import java.time.Instant
+import java.time.LocalDate
 
 /** Represents nullability filter for certain date fields */
 enum class NullabilityFilter { NULL, NOT_NULL }
@@ -59,8 +59,8 @@ object ProjectSpecifications {
             // Completion nullability
             filter.completion?.let { nf ->
                 predicates += when (nf) {
-                    NullabilityFilter.NULL -> cb.isNull(root.get<Instant?>("completion"))
-                    NullabilityFilter.NOT_NULL -> cb.isNotNull(root.get<Instant?>("completion"))
+                    NullabilityFilter.NULL -> cb.isNull(root.get<LocalDate?>("completion"))
+                    NullabilityFilter.NOT_NULL -> cb.isNotNull(root.get<LocalDate?>("completion"))
                 }
             }
 

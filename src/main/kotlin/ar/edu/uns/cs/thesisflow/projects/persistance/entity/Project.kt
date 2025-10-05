@@ -15,7 +15,7 @@ import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import java.time.Instant
+import java.time.LocalDate
 
 @Suppress("unused") // JPA accessed fields
 @Entity
@@ -32,8 +32,8 @@ class Project(
     @Enumerated(EnumType.STRING)
     var subType: MutableSet<ProjectSubType> = mutableSetOf(),
     @Column(nullable = false)
-    var initialSubmission: Instant = Instant.now(),
-    var completion: Instant? = null,
+    var initialSubmission: LocalDate = LocalDate.now(),
+    var completion: LocalDate? = null,
     @ManyToOne(fetch = FetchType.LAZY)
     var applicationDomain: ApplicationDomain? = null,
     @ManyToMany(fetch = FetchType.LAZY)
@@ -46,7 +46,7 @@ class Project(
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     var participants: MutableSet<ProjectParticipant> = mutableSetOf(),
     @Column(nullable = false)
-    var createdAt: Instant = Instant.now(),
+    var createdAt: LocalDate = LocalDate.now(),
     @Column(nullable = false)
-    var updatedAt: Instant? = Instant.now(),
+    var updatedAt: LocalDate = LocalDate.now(),
 ) : BaseEntity()
