@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface ProjectParticipantRepository: JpaRepository<ProjectParticipant, Long> {
     fun findAllByProject(project: Project): List<ProjectParticipant>
+    fun deleteAllByProject(project: Project)
 }

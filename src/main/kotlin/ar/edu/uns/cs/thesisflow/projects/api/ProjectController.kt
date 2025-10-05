@@ -135,4 +135,7 @@ class ProjectController(
         @PathVariable id: String,
         @RequestBody setParticipantsRequest: SetParticipantsRequest
     ) = projectService.setParticipants(id, setParticipantsRequest.participants)
+
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable id: String) = projectService.delete(id)
 }

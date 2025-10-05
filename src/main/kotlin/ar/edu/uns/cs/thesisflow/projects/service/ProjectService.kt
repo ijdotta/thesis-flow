@@ -58,6 +58,12 @@ class ProjectService(
         return projectRepository.save(entity).toDTO()
     }
 
+    fun delete(id: String) {
+        val project = findEntityByPublicId(id)
+        projectParticipantRepository.deleteAllByProject(project)
+        projectRepository.delete(project)
+    }
+
     @Transactional
     fun setApplicationDomain(id: String, domainId: String): ProjectDTO {
         val entity = findEntityByPublicId(id)
