@@ -113,7 +113,7 @@ class ProjectServiceIntegrationTest(
         participantsInfo.forEach { participant ->
             assertTrue { participants.any {
                 it.personDTO.publicId == participant.personId &&
-                it.role == participant.roleName
+                it.role == participant.role
             } }
         }
     }

@@ -80,7 +80,7 @@ class ProjectService(
     private fun ParticipantInfo.toProjectParticipantEntity(project: Project) = ProjectParticipant(
         project = project,
         person = personService.findPersonByPublicId(personId),
-        participantRole = ParticipantRole.valueOf(roleName),
+        participantRole = ParticipantRole.valueOf(role),
     )
 }
 

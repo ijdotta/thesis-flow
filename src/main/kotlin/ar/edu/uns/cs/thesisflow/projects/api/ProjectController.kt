@@ -129,4 +129,10 @@ class ProjectController(
         @PathVariable id: String,
         @RequestBody setApplicationDomainRequest: SetApplicationDomainRequest
     ) = projectService.setApplicationDomain(id, setApplicationDomainRequest.applicationDomainId)
+
+    @PutMapping("/{id}/participants")
+    fun setParticipants(
+        @PathVariable id: String,
+        @RequestBody setParticipantsRequest: SetParticipantsRequest
+    ) = projectService.setParticipants(id, setParticipantsRequest.participants)
 }
