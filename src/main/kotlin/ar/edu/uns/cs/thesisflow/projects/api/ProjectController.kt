@@ -128,5 +128,5 @@ class ProjectController(
     fun setApplicationDomain(
         @PathVariable id: String,
         @RequestBody setApplicationDomainRequest: SetApplicationDomainRequest
-    ) = projectService.setApplicationDomain(id, setApplicationDomainRequest.applicationDomain)
+    ) = projectService.setApplicationDomain(id, setApplicationDomainRequest.applicationDomainId)
 }
