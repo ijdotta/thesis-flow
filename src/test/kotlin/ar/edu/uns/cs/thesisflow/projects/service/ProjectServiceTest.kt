@@ -25,7 +25,12 @@ class ProjectServiceTest @Autowired constructor(
     professorRepository: ProfessorRepository,
     personRepository: PersonRepository,
 ) {
-    private val personService = PersonService(personRepository)
+    private val personService = PersonService(
+        personRepository,
+        studentRepository,
+        professorRepository,
+        projectParticipantRepository
+    )
     private val projectService = ProjectService(
         projectRepository,
         applicationDomainRepository,
