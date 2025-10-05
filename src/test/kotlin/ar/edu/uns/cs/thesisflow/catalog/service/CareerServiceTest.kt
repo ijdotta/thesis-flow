@@ -3,6 +3,7 @@ package ar.edu.uns.cs.thesisflow.catalog.service
 import ar.edu.uns.cs.thesisflow.catalog.dto.CareerDTO
 import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
 import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,9 +12,10 @@ import org.springframework.data.domain.PageRequest
 
 @DataJpaTest
 class CareerServiceTest @Autowired constructor(
-    private val repository: CareerRepository
+    private val repository: CareerRepository,
+    studentCareerRepository: StudentCareerRepository,
 ) {
-    private val service = CareerService(repository)
+    private val service = CareerService(repository, studentCareerRepository)
 
     @Test
     fun `findAll returns page mapped to DTO`() {
