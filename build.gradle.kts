@@ -32,10 +32,10 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    // Updated Flyway dependencies (core + PostgreSQL & H2 database support) pinned to newer version supporting Postgres 17
+    // Updated Flyway dependencies (core + PostgreSQL database support) pinned to newer version supporting Postgres 17
     implementation("org.flywaydb:flyway-core:10.18.2")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:10.18.2")
-    testImplementation("org.flywaydb:flyway-database-h2:10.18.2")
+    // H2 support is already bundled in flyway-core; no separate flyway-database-h2 artifact exists.
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")
