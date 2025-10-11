@@ -1,8 +1,10 @@
 package ar.edu.uns.cs.thesisflow.projects.service
 
+import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
 import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantInfo
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
@@ -29,6 +31,8 @@ class ProjectService(
     private val studentRepository: StudentRepository,
     private val professorRepository: ProfessorRepository,
     private val personRepository: PersonRepository,
+    private val careerRepository: CareerRepository,
+    private val studentCareerRepository: StudentCareerRepository,
 ) {
     fun findAll(pageable: Pageable): Page<ProjectDTO> =
         findAll(pageable, ProjectFilter.empty())
@@ -50,7 +54,19 @@ class ProjectService(
         id?.let { projectRepository.findByPublicId(UUID.fromString(it)) }
             ?: throw IllegalArgumentException("Project not found for id $id")
 
-    fun create(projectDTO: ProjectDTO) = projectRepository.save(projectDTO.toEntity()).toDTO()
+    fun create(projectDTO: ProjectDTO): ProjectDTO {
+        validate(projectDTO)
+        val entity = projectDTO.toEntity()
+        val career = careerRepository.findByPublicId(UUID.fromString(projectDTO.careerPublicId!!))
+        entity.career = career
+        return projectRepository.save(entity).toDTO()
+    }
+
+    private fun validate(projectDTO: ProjectDTO) {
+        if (projectDTO.careerPublicId == null) {
+            throw IllegalArgumentException("Career publicId is required")
+        }
+    }
 
     fun update(id: String, projectDTO: ProjectDTO): ProjectDTO {
         val entity = findEntityByPublicId(id)
@@ -88,21 +104,43 @@ class ProjectService(
         return project.toDTO(participantDTOs)
     }
 
+    @Transactional
+    fun setCareer(id: String, careerId: String): ProjectDTO {
+        val entity = findEntityByPublicId(id)
+        val career = careerRepository.findByPublicId(UUID.fromString(careerId))
+            ?: throw NoSuchElementException("Career not found for publicId $careerId")
+        entity.career = career
+        return projectRepository.save(entity).toDTO()
+    }
+
     private fun ParticipantInfo.toProjectParticipantEntity(project: Project): ProjectParticipant {
         val participantRole = ParticipantRole.valueOf(role)
+        val person = resolvePerson(personId, participantRole, project)
         return ProjectParticipant(
             project = project,
-            person = resolvePerson(personId, participantRole),
+            person = person,
             participantRole = participantRole,
         )
     }
 
-    private fun resolvePerson(participantId: String, role: ParticipantRole): Person {
+    private fun resolvePerson(participantId: String, role: ParticipantRole, project: Project): Person {
         val publicId = UUID.fromString(participantId)
         return when (role) {
             ParticipantRole.STUDENT -> {
-                studentRepository.findByPublicId(publicId)?.person
+                val student = studentRepository.findByPublicId(publicId)
                     ?: throw NoSuchElementException("Student not found for publicId $publicId")
+
+                // Validate that the project's career is in the student's careers
+                val studentCareers = studentCareerRepository.findAllByStudent(student)
+                    .mapNotNull { it.career }
+
+                if (!studentCareers.any { it.id == project.career!!.id }) {
+                    throw IllegalArgumentException(
+                        "Student's careers do not include the project's career (${project.career!!.name})"
+                    )
+                }
+
+                student.person ?: throw IllegalStateException("Student has no associated person")
             }
             ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR -> {
                 professorRepository.findByPublicId(publicId)?.person

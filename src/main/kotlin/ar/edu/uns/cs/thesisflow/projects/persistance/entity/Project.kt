@@ -1,5 +1,6 @@
 package ar.edu.uns.cs.thesisflow.projects.persistance.entity
 
+import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
 import ar.edu.uns.cs.thesisflow.common.persistence.BaseEntity
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
@@ -40,6 +41,9 @@ class Project(
     @Column(nullable = false)
     var initialSubmission: LocalDate = LocalDate.now(),
     var completion: LocalDate? = null,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "career_id", nullable = false)
+    var career: Career? = null,
     @ManyToOne(fetch = FetchType.LAZY)
     var applicationDomain: ApplicationDomain? = null,
     @ManyToMany(fetch = FetchType.LAZY)
