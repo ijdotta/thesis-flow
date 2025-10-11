@@ -32,21 +32,25 @@ class ProjectCsvParserImpl : ProjectCsvParser {
             CSVParser.parse(input, StandardCharsets.UTF_8, format).use { parser ->
                 parser.records.map { record ->
                     RawProjectData(
-                        type = record.get(PROJECT_TYPE),
-                        submissionDate = record.get(SUBMISSION_DATE),
-                        completionDate = record.get(COMPLETION_DATE),
-                        title = record.get(TITLE),
-                        director = record.get(DIRECTOR),
-                        codirector = record.get(CODIRECTOR),
-                        collaborator = record.get(COLLABORATOR),
-                        studentA = record.get(STUDENT_A),
-                        studentB = record.get(STUDENT_B),
-                        studentC = record.get(STUDENT_C),
-                        topics = record.get(TOPICS),
-                        domain = record.get(DOMAIN),
+                        type = record.safeGet(PROJECT_TYPE),
+                        submissionDate = record.safeGet(SUBMISSION_DATE),
+                        completionDate = record.safeGet(COMPLETION_DATE),
+                        title = record.safeGet(TITLE),
+                        director = record.safeGet(DIRECTOR),
+                        codirector = record.safeGet(CODIRECTOR),
+                        collaborator = record.safeGet(COLLABORATOR),
+                        studentA = record.safeGet(STUDENT_A),
+                        studentB = record.safeGet(STUDENT_B),
+                        studentC = record.safeGet(STUDENT_C),
+                        topics = record.safeGet(TOPICS),
+                        domain = record.safeGet(DOMAIN),
                     )
                 }.toList()
             }
         }
     }
+}
+
+private fun org.apache.commons.csv.CSVRecord.safeGet(column: String): String {
+    return if (this.isMapped(column)) this.get(column) else ""
 }
