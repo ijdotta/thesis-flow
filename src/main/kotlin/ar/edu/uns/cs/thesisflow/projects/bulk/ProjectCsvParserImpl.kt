@@ -2,6 +2,7 @@ package ar.edu.uns.cs.thesisflow.projects.bulk
 
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
+import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
 import java.nio.charset.StandardCharsets
 
@@ -18,6 +19,7 @@ private const val STUDENT_C = "student_c"
 private const val TOPICS = "topics"
 private const val DOMAIN = "domain"
 
+@Component
 class ProjectCsvParserImpl : ProjectCsvParser {
     private val format = CSVFormat.DEFAULT.builder()
         .setHeader()

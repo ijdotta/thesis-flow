@@ -6,6 +6,7 @@ import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
+import ar.edu.uns.cs.thesisflow.projects.bulk.ProjectCsvParser
 import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantInfo
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
 import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
@@ -35,6 +36,7 @@ class ProjectService(
     private val careerRepository: CareerRepository,
     private val studentCareerRepository: StudentCareerRepository,
     private val projectAuthorizationService: ProjectAuthorizationService,
+    private val csvParser: ProjectCsvParser,
 ) {
     fun findAll(pageable: Pageable): Page<ProjectDTO> =
         findAll(pageable, ProjectFilter.empty())
@@ -165,6 +167,9 @@ class ProjectService(
      */
     @Transactional
     fun bulkImportFromCsv(file: MultipartFile): Map<String, Any> {
+        val rawProjectData = csvParser.readProjectsFromCsv(file)
+
+
         // TODO: Implement bulk import logic
         // Example implementation steps:
         // 1. Parse CSV file (read headers and rows)
