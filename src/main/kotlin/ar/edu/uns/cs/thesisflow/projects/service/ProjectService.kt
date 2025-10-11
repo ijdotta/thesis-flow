@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 import java.util.UUID
 
 @Service
@@ -154,6 +155,28 @@ class ProjectService(
                     ?: throw NoSuchElementException("Person not found for publicId $publicId")
             }
         }
+    }
+
+    /**
+     * Bulk import projects from a CSV file.
+     * TODO: Implement CSV parsing and project creation logic
+     * @param file The CSV file containing project data
+     * @return A map containing the import results (e.g., success count, errors)
+     */
+    @Transactional
+    fun bulkImportFromCsv(file: MultipartFile): Map<String, Any> {
+        // TODO: Implement bulk import logic
+        // Example implementation steps:
+        // 1. Parse CSV file (read headers and rows)
+        // 2. Validate each row
+        // 3. Create ProjectDTO instances
+        // 4. Save projects using create() or save directly
+        // 5. Return summary of import results
+
+        return mapOf(
+            "message" to "Bulk import not yet implemented",
+            "fileName" to (file.originalFilename ?: "unknown")
+        )
     }
 }
 
