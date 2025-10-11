@@ -1,15 +1,15 @@
 package ar.edu.uns.cs.thesisflow.projects.api
 
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
-import ar.edu.uns.cs.thesisflow.projects.service.ProjectService
-import org.springframework.data.domain.PageRequest
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
 import ar.edu.uns.cs.thesisflow.projects.service.ProjectFilter
 import ar.edu.uns.cs.thesisflow.projects.service.NullabilityFilter
-import org.springframework.data.domain.Sort
+import ar.edu.uns.cs.thesisflow.projects.service.ProjectService
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/projects")
@@ -21,25 +21,37 @@ class ProjectController(
     private val sortableFields = setOf(
         "createdAt", "updatedAt", "title", "type", "initialSubmission", "completion"
     )
+
+    // Pseudo fields mapped to real columns (placeholder until joins implemented)
     private val pseudoFieldMapping = mapOf(
-        // Pseudo fields mapped to a real column (placeholder until implemented properly)
         "students" to "createdAt",
         "directors" to "createdAt"
     )
 
+    // Synonyms for project type filtering (case-insensitive)
+    private val typeSynonyms = mapOf(
+        "TESIS" to ProjectType.THESIS.name,
+        "THESIS" to ProjectType.THESIS.name,
+        "FINAL" to ProjectType.FINAL_PROJECT.name,
+        "FINALPROJECT" to ProjectType.FINAL_PROJECT.name,
+        "FINAL_PROJECT" to ProjectType.FINAL_PROJECT.name,
+    )
+
     @GetMapping
     fun findAll(
-        @RequestParam(required = false, defaultValue = "0") page: Int,
-        @RequestParam(required = false, defaultValue = "25") size: Int,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) title: String?,
-        @RequestParam(name = "professor.name", required = false) professorName: String?,
-        @RequestParam(required = false) directors: String?, // alias for professorName
-        @RequestParam(name = "student.name", required = false) studentName: String?,
-        @RequestParam(required = false) students: String?, // alias for studentName
+        // Aliases for professor/director names
+        @RequestParam(required = false) directors: String?,
+        @RequestParam(required = false) professorName: String?,
+        // Aliases for student names
+        @RequestParam(required = false) students: String?,
+        @RequestParam(required = false) studentName: String?,
         @RequestParam(required = false) domain: String?,
         @RequestParam(required = false) completed: Boolean?, // legacy alias
         @RequestParam(required = false) completion: Boolean?, // preferred param (true -> completion NOT NULL)
-        @RequestParam(required = false) type: String?, // project type filter (supports synonyms & comma-separated)
+        @RequestParam(required = false) type: String?, // accepts synonyms & comma-separated
         @RequestParam(required = false) sort: String?, // e.g. createdAt,desc OR students,asc (pseudo)
     ): ResponseEntity<*> {
         val effectiveProfessor = (directors ?: professorName)?.takeIf { it.isNotBlank() }
@@ -56,19 +68,18 @@ class ProjectController(
             type = normalizedType,
         )
 
-        val pageable = PageRequest.of(page, size, sort.toSort())
-
         log.debug(
             "Project filter request -> page={}, size={}, title='{}', directors='{}', students='{}', domain='{}', completionFlag={}, typeRaw='{}', typeNormalized='{}', sort='{}'",
             page, size, title, effectiveProfessor, effectiveStudent, domain, completionFlag, type, normalizedType, sort
         )
 
+        val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceAtLeast(1), sort.toSort())
         return ResponseEntity.ok(projectService.findAll(pageable, filter))
     }
 
     private fun String?.toSort(): Sort {
         if (this.isNullOrBlank()) return Sort.unsorted()
-        val parts = this.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        val parts = this.split(',').map { it.trim() }.filter { it.isNotEmpty() }
         if (parts.isEmpty()) return Sort.unsorted()
         val originalField = parts[0]
         val field = pseudoFieldMapping[originalField] ?: originalField
@@ -84,30 +95,23 @@ class ProjectController(
         return Sort.by(Sort.Order(dir, field))
     }
 
-    private fun Boolean?.toNullabilityFilter(): NullabilityFilter? = when (this) {
-        null -> null
-        true -> NullabilityFilter.NOT_NULL
-        false -> NullabilityFilter.NULL
-    }
-
     // Map incoming type param to canonical enum names, supporting synonyms & multiple values
     private fun normalizeTypeParam(raw: String?): String? {
         if (raw.isNullOrBlank()) return null
-        val synonyms = mapOf(
-            "PROJECT" to ProjectType.FINAL_PROJECT.name,
-            "FINALPROJECT" to ProjectType.FINAL_PROJECT.name,
-            "FINAL-PROJECT" to ProjectType.FINAL_PROJECT.name,
-            "FINAL_PROYECTO" to ProjectType.FINAL_PROJECT.name, // potential localization
-            "TESIS" to ProjectType.THESIS.name // Spanish variant
-        )
         val canon = raw.split(',')
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .map { it.uppercase() }
-            .map { synonyms[it] ?: it }
+            .map { typeSynonyms[it] ?: it }
             .mapNotNull { value -> runCatching { ProjectType.valueOf(value).name }.getOrNull() }
             .distinct()
         return if (canon.isEmpty()) null else canon.joinToString(",")
+    }
+
+    private fun Boolean?.toNullabilityFilter(): NullabilityFilter? = when (this) {
+        null -> null
+        true -> NullabilityFilter.NOT_NULL
+        false -> NullabilityFilter.NULL
     }
 
     @GetMapping("/{id}")
