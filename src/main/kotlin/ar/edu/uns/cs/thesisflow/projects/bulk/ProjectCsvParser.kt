@@ -3,14 +3,13 @@ package ar.edu.uns.cs.thesisflow.projects.bulk
 import org.springframework.web.multipart.MultipartFile
 
 interface ProjectCsvParser {
-    fun readProjectsFromCsv(file: MultipartFile): List<BulkProjectData>
+    fun readProjectsFromCsv(file: MultipartFile): List<RawProjectData>
 }
 
-data class BulkProjectData(
+data class RawProjectData(
     val type: String,
     val submissionDate: String,
     val completionDate: String,
-    val completed: Boolean,
     val title: String,
     val director: String,
     val codirector: String?,
