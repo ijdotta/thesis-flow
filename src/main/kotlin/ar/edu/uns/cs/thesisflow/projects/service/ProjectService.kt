@@ -48,7 +48,7 @@ class ProjectService(
         return this.toDTO(participantDTOs)
     }
 
-    fun findByPublicId(id: String?) = findEntityByPublicId(id).toDTO()
+    fun findByPublicId(id: String?) = findEntityByPublicId(id).withEnrichedParticipants()
 
     private fun findEntityByPublicId(id: String?) =
         id?.let { projectRepository.findByPublicId(UUID.fromString(it)) }

@@ -6,6 +6,7 @@ import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
 import ar.edu.uns.cs.thesisflow.people.dto.StudentDTO
 import ar.edu.uns.cs.thesisflow.people.dto.toDTO
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
+import ar.edu.uns.cs.thesisflow.people.persistance.entity.Student
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.StudentCareer
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
@@ -23,9 +24,14 @@ class StudentService(
     private val careerRepository: CareerRepository,
     private val studentCareerRepository: StudentCareerRepository,
 ) {
-    fun findAll(pageable: Pageable): Page<StudentDTO> = studentRepository.findAll(pageable).map { it.toDTO() }
+    fun findAll(pageable: Pageable): Page<StudentDTO> = studentRepository.findAll(pageable).map { it.withCareers() }
 
-    fun findByPublicId(publicId: String) = findEntityByPublicId(UUID.fromString(publicId)).toDTO()
+    fun findByPublicId(publicId: String) = findEntityByPublicId(UUID.fromString(publicId)).withCareers()
+
+    private fun Student.withCareers(): StudentDTO {
+        val careers = studentCareerRepository.findAllByStudent(this).map { it.career!!.toDTO() }
+        return this.toDTO(careers)
+    }
 
     fun findEntityByPublicId(publicId: UUID) = studentRepository.findByPublicId(publicId)
         ?: throw IllegalArgumentException("No student found for publicId: $publicId")
