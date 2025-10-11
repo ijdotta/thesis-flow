@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.data.domain.PageRequest
+import org.springframework.web.bind.annotation.DeleteMapping
 
 @RestController
 @RequestMapping("/tags")
@@ -34,4 +35,7 @@ class TagController(
     @PutMapping("/{publicId}")
     fun update(@PathVariable publicId: String, @RequestBody tag: TagDTO) =
         ResponseEntity.ok(tagService.update(publicId, tag))
+
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable id: String) = tagService.delete(id)
 }

@@ -128,5 +128,14 @@ class ProjectController(
     fun setApplicationDomain(
         @PathVariable id: String,
         @RequestBody setApplicationDomainRequest: SetApplicationDomainRequest
-    ) = projectService.setApplicationDomain(id, setApplicationDomainRequest.applicationDomain)
+    ) = projectService.setApplicationDomain(id, setApplicationDomainRequest.applicationDomainId)
+
+    @PutMapping("/{id}/participants")
+    fun setParticipants(
+        @PathVariable id: String,
+        @RequestBody setParticipantsRequest: SetParticipantsRequest
+    ) = projectService.setParticipants(id, setParticipantsRequest.participants)
+
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable id: String) = projectService.delete(id)
 }

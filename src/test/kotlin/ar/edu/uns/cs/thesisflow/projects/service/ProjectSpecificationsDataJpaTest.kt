@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.data.domain.PageRequest
-import java.time.Instant
+import java.time.LocalDate
 
 @DataJpaTest
 @Transactional
@@ -34,7 +34,7 @@ class ProjectSpecificationsDataJpaTest @Autowired constructor(
             type = ProjectType.THESIS,
             subType = mutableSetOf(ProjectSubType.TYPE_1),
             applicationDomain = domain,
-            completion = Instant.now()
+            completion = LocalDate.now()
         ))
         projectInProgress = projectRepository.save(Project(
             title = "Vision Transformers",

@@ -15,10 +15,16 @@ import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import jakarta.persistence.EntityListeners
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
+import java.time.LocalDate
 
-@Suppress("unused") // JPA accessed fields
+@Suppress("unused")
 @Entity
+@EntityListeners(AuditingEntityListener::class)
 @Table(indexes = [Index(name = "idx_project_public_id", columnList = "public_id")])
 class Project(
     @Column(nullable = false)
@@ -32,8 +38,8 @@ class Project(
     @Enumerated(EnumType.STRING)
     var subType: MutableSet<ProjectSubType> = mutableSetOf(),
     @Column(nullable = false)
-    var initialSubmission: Instant = Instant.now(),
-    var completion: Instant? = null,
+    var initialSubmission: LocalDate = LocalDate.now(),
+    var completion: LocalDate? = null,
     @ManyToOne(fetch = FetchType.LAZY)
     var applicationDomain: ApplicationDomain? = null,
     @ManyToMany(fetch = FetchType.LAZY)
@@ -45,8 +51,11 @@ class Project(
     var tags: MutableSet<Tag> = mutableSetOf(),
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     var participants: MutableSet<ProjectParticipant> = mutableSetOf(),
+) : BaseEntity() {
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    lateinit var createdAt: Instant
+    @LastModifiedDate
     @Column(nullable = false)
-    var createdAt: Instant = Instant.now(),
-    @Column(nullable = false)
-    var updatedAt: Instant? = Instant.now(),
-) : BaseEntity()
+    lateinit var updatedAt: Instant
+}

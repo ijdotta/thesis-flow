@@ -2,6 +2,7 @@ package ar.edu.uns.cs.thesisflow.projects.service
 
 import ar.edu.uns.cs.thesisflow.projects.dto.TagDTO
 import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
+import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -10,7 +11,8 @@ import org.springframework.data.domain.Page
 
 @Service
 class TagService(
-    val tagRepository: TagRepository
+    val tagRepository: TagRepository,
+    private val projectRepository: ProjectRepository
 ) {
     fun findAll(pageable: Pageable): Page<TagDTO> = tagRepository.findAll(pageable).map { it.toDTO() }
 
@@ -26,5 +28,14 @@ class TagService(
         val entity = findEntityByPublicId(publicId)
         tag.update(entity)
         return tagRepository.save(entity).toDTO()
+    }
+
+    fun delete(id: String) {
+        val entity = findEntityByPublicId(id)
+        projectRepository.findAllByTagsContains(entity).forEach {
+            it.tags.remove(entity)
+            projectRepository.save(it)
+        }
+        tagRepository.delete(entity)
     }
 }

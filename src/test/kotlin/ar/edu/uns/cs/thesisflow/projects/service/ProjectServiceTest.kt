@@ -5,29 +5,40 @@ import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.*
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.*
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.data.domain.PageRequest
-import java.time.Instant
+import java.time.LocalDate
 
 @DataJpaTest
 @Suppress("unused")
 class ProjectServiceTest @Autowired constructor(
     private val projectRepository: ProjectRepository,
-    private val applicationDomainRepository: ApplicationDomainRepository,
+    applicationDomainRepository: ApplicationDomainRepository,
     private val tagRepository: TagRepository,
-    private val projectParticipantRepository: ProjectParticipantRepository,
-    private val personRepository: PersonRepository,
+    projectParticipantRepository: ProjectParticipantRepository,
+    studentRepository: StudentRepository,
+    professorRepository: ProfessorRepository,
+    personRepository: PersonRepository,
 ) {
-    private val personService = PersonService(personRepository)
+    private val personService = PersonService(
+        personRepository,
+        studentRepository,
+        professorRepository,
+        projectParticipantRepository
+    )
     private val projectService = ProjectService(
         projectRepository,
         applicationDomainRepository,
         tagRepository,
         projectParticipantRepository,
-        personService
+        studentRepository,
+        professorRepository,
+        personRepository
     )
 
     @Test
@@ -53,7 +64,7 @@ class ProjectServiceTest @Autowired constructor(
             title = "New",
             type = ProjectType.THESIS.name,
             subtype = listOf(ProjectSubType.TYPE_1.name),
-            initialSubmission = Instant.now()
+            initialSubmission = LocalDate.now()
         )
         val created = projectService.create(dto)
         assertThat(created.title).isEqualTo("New")

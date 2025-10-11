@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.data.domain.PageRequest
+import org.springframework.web.bind.annotation.DeleteMapping
 
 @RestController
 @RequestMapping("/careers")
@@ -35,4 +36,7 @@ class CareerController(
         val careerWithId = careerDTO.copy(publicId = publicId)
         ResponseEntity.ok(careerService.update(careerWithId))
     }
+
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable("id") id: String) = careerService.delete(id)
 }

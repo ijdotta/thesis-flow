@@ -12,7 +12,7 @@ import org.springframework.data.domain.PageRequest
 class ApplicationDomainServiceTest @Autowired constructor(
     private val repository: ApplicationDomainRepository
 ) {
-    private val service = ApplicationDomainService(repository)
+    private val service = ApplicationDomainService(repository, projectRepository)
 
     @Test
     fun `findAll returns page of DTOs`() {

@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.TestPropertySource
-import java.time.Instant
+import java.time.LocalDate
 import kotlin.test.Ignore
 import kotlin.test.Test
 
@@ -97,7 +97,7 @@ class MigrationsAsTest(
                 title = "Sistema de Gestión y Visualización de Trabajos Finales de Carrera para el DCIC",
                 type = ProjectType.FINAL_PROJECT.name,
                 subtype = listOf(ProjectSubType.TYPE_1.name),
-                initialSubmission = Instant.now()
+                initialSubmission = LocalDate.now()
             )
         )
 

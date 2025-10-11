@@ -2,6 +2,9 @@ package ar.edu.uns.cs.thesisflow.people.service
 
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
+import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectParticipantRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,9 +13,17 @@ import org.springframework.data.domain.PageRequest
 
 @DataJpaTest
 class PersonServiceTest @Autowired constructor(
-    private val personRepository: PersonRepository
+    private val personRepository: PersonRepository,
+    studentRepository: StudentRepository,
+    professorRepository: ProfessorRepository,
+    projectParticipantRepository: ProjectParticipantRepository,
 ) {
-    private val service = PersonService(personRepository)
+    private val service = PersonService(
+        personRepository,
+        studentRepository,
+        professorRepository,
+        projectParticipantRepository
+    )
 
     @Test
     fun `findAll maps entities to DTOs`() {

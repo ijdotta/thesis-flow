@@ -1,6 +1,9 @@
 package ar.edu.uns.cs.thesisflow.projects.service
 
-import ar.edu.uns.cs.thesisflow.people.service.PersonService
+import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
 import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantInfo
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
 import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
@@ -23,7 +26,9 @@ class ProjectService(
     private val applicationDomainRepository: ApplicationDomainRepository,
     private val tagRepository: TagRepository,
     private val projectParticipantRepository: ProjectParticipantRepository,
-    private val personService: PersonService,
+    private val studentRepository: StudentRepository,
+    private val professorRepository: ProfessorRepository,
+    private val personRepository: PersonRepository,
 ) {
     fun findAll(pageable: Pageable): Page<ProjectDTO> =
         findAll(pageable, ProjectFilter.empty())
@@ -53,6 +58,12 @@ class ProjectService(
         return projectRepository.save(entity).toDTO()
     }
 
+    fun delete(id: String) {
+        val project = findEntityByPublicId(id)
+        projectParticipantRepository.deleteAllByProject(project)
+        projectRepository.delete(project)
+    }
+
     @Transactional
     fun setApplicationDomain(id: String, domainId: String): ProjectDTO {
         val entity = findEntityByPublicId(id)
@@ -77,11 +88,32 @@ class ProjectService(
         return project.toDTO(participantDTOs)
     }
 
-    private fun ParticipantInfo.toProjectParticipantEntity(project: Project) = ProjectParticipant(
-        project = project,
-        person = personService.findPersonByPublicId(personId),
-        participantRole = ParticipantRole.valueOf(roleName),
-    )
+    private fun ParticipantInfo.toProjectParticipantEntity(project: Project): ProjectParticipant {
+        val participantRole = ParticipantRole.valueOf(role)
+        return ProjectParticipant(
+            project = project,
+            person = resolvePerson(personId, participantRole),
+            participantRole = participantRole,
+        )
+    }
+
+    private fun resolvePerson(participantId: String, role: ParticipantRole): Person {
+        val publicId = UUID.fromString(participantId)
+        return when (role) {
+            ParticipantRole.STUDENT -> {
+                studentRepository.findByPublicId(publicId)?.person
+                    ?: throw NoSuchElementException("Student not found for publicId $publicId")
+            }
+            ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR -> {
+                professorRepository.findByPublicId(publicId)?.person
+                    ?: throw NoSuchElementException("Professor not found for publicId $publicId")
+            }
+            ParticipantRole.COLLABORATOR -> {
+                personRepository.findByPublicId(publicId)
+                    ?: throw NoSuchElementException("Person not found for publicId $publicId")
+            }
+        }
+    }
 }
 
 private fun List<String>.asUUIDs() = this.map { UUID.fromString(it) }
