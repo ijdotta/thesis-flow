@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface PersonRepository: JpaRepository<Person, Long> {
     fun findByPublicId(publicId: UUID): Person?
+    fun findFirstByNameLikeIgnoreCaseAndLastnameLikeIgnoreCase(name: String, lastname: String): Person?
 }

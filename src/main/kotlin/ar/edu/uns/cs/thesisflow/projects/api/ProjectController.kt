@@ -10,6 +10,8 @@ import ar.edu.uns.cs.thesisflow.projects.service.NullabilityFilter
 import org.springframework.data.domain.Sort
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import org.slf4j.LoggerFactory
+import org.springframework.web.multipart.MultipartFile
+import org.springframework.http.HttpStatus
 
 @RestController
 @RequestMapping("/projects")
@@ -138,4 +140,26 @@ class ProjectController(
 
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: String) = projectService.delete(id)
+
+    @PostMapping("/bulk-import", consumes = ["multipart/form-data"])
+    fun bulkImport(@RequestParam("file") file: MultipartFile): ResponseEntity<*> {
+        log.info("Bulk import request received with file: ${file.originalFilename}")
+
+        if (file.isEmpty) {
+            return ResponseEntity.badRequest().body(mapOf("error" to "File is empty"))
+        }
+
+        if (file.contentType != "text/csv" && !file.originalFilename.orEmpty().endsWith(".csv")) {
+            return ResponseEntity.badRequest().body(mapOf("error" to "File must be a CSV file"))
+        }
+
+        return try {
+            val result = projectService.bulkImportFromCsv(file)
+            ResponseEntity.status(HttpStatus.CREATED).body(result)
+        } catch (e: Exception) {
+            log.error("Error during bulk import", e)
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(mapOf("error" to (e.message ?: "Unknown error occurred")))
+        }
+    }
 }

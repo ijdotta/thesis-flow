@@ -4,6 +4,9 @@ import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
 import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.*
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ApplicationDomainRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectParticipantRepository
@@ -30,6 +33,9 @@ class ProjectControllerIntegrationTest @Autowired constructor(
     private val personRepository: PersonRepository,
     private val domainRepository: ApplicationDomainRepository,
     private val careerRepository: CareerRepository,
+    private val professorRepository: ProfessorRepository,
+    private val studentRepository: StudentRepository,
+    private val studentCareerRepository: StudentCareerRepository,
 ) {
     private lateinit var completed: Project
     private lateinit var inProgress: Project
@@ -38,6 +44,9 @@ class ProjectControllerIntegrationTest @Autowired constructor(
     fun initData() {
         participantRepository.deleteAll()
         projectRepository.deleteAll()
+        studentCareerRepository.deleteAll()
+        studentRepository.deleteAll()
+        professorRepository.deleteAll()
         domainRepository.deleteAll()
         personRepository.deleteAll()
         careerRepository.deleteAll()

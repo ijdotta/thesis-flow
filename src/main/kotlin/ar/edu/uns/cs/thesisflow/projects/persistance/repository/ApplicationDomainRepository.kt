@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface ApplicationDomainRepository: JpaRepository<ApplicationDomain, Long> {
     fun findByPublicId(publicId: UUID): ApplicationDomain?
+    fun findByName(name: String): ApplicationDomain?
 }
