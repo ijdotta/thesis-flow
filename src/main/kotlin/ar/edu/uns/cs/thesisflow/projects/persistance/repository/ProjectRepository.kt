@@ -13,4 +13,5 @@ interface ProjectRepository: JpaRepository<Project, Long>, JpaSpecificationExecu
     fun findFirstByApplicationDomain(entity: ApplicationDomain): Project?
     fun findAllByTagsContains(tag: Tag): List<Project>
     fun existsByTitleAndInitialSubmission(title: String, initialSubmission: LocalDate): Boolean
+    fun findFirstByTitleAndInitialSubmission(title: String, initialSubmission: LocalDate): Project?
 }

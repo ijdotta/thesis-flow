@@ -1,5 +1,7 @@
 package ar.edu.uns.cs.thesisflow.bulk
 
+import ar.edu.uns.cs.thesisflow.bulk.dto.ProjectImportResult
+import ar.edu.uns.cs.thesisflow.bulk.dto.ProjectImportStatus
 import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
 import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
@@ -10,6 +12,8 @@ import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
+import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
+import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ApplicationDomain
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
@@ -22,10 +26,12 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepositor
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
+import org.apache.commons.csv.CSVRecord
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.io.InputStream
 import java.io.InputStreamReader
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -59,119 +65,174 @@ class LegacyDatasetImporter(
     private val domainCache = mutableMapOf<String, ApplicationDomain>()
 
     @Transactional
-    fun import() {
+    fun importFromResource(): List<ProjectImportResult> {
         val resource = ClassPathResource("data/dataset.csv")
         if (!resource.exists()) {
             logger.warn("Legacy dataset file not found at data/dataset.csv - skipping import")
-            return
+            return emptyList()
         }
 
-        resource.inputStream.use { input ->
-            InputStreamReader(input, Charsets.UTF_8).use { reader ->
-                val format = CSVFormat.DEFAULT.builder()
-                    .setHeader()
-                    .setSkipHeaderRecord(true)
-                    .setTrim(true)
-                    .setIgnoreEmptyLines(true)
-                    .build()
-                val parser = CSVParser.parse(reader, format)
+        return resource.inputStream.use { stream ->
+            import(stream, "classpath:data/dataset.csv")
+        }
+    }
 
-                val defaultCareer = resolveDefaultCareer()
+    @Transactional
+    fun import(stream: InputStream, source: String = "upload"): List<ProjectImportResult> {
+        resetCaches()
+        val results = mutableListOf<ProjectImportResult>()
+        val defaultCareer = resolveDefaultCareer()
+
+        InputStreamReader(stream, Charsets.UTF_8).use { reader ->
+            val format = CSVFormat.DEFAULT.builder()
+                .setHeader()
+                .setSkipHeaderRecord(true)
+                .setTrim(true)
+                .setIgnoreEmptyLines(true)
+                .build()
+
+            CSVParser.parse(reader, format).use { parser ->
                 parser.forEach { record ->
-                    val title = record[TITLE]?.trim()?.takeIf { it.isNotBlank() } ?: return@forEach
-                    val typeCode = record[PROJECT_TYPE]?.trim()?.uppercase(Locale.getDefault())
-                    val projectType = typeMapping[typeCode]
-                    if (projectType == null) {
-                        logger.warn("Unknown project type '{}' for title '{}' - skipping", typeCode, title)
+                    val lineNumber = record.recordNumber
+                    val title = record[TITLE]?.trim()?.takeIf { it.isNotBlank() }
+                    if (title == null) {
+                        results += result(lineNumber, null, ProjectImportStatus.FAILED, message = "Missing project title")
                         return@forEach
                     }
+                    results += processRecord(record, title, defaultCareer, lineNumber)
+                }
+            }
+        }
 
-                    val initialSubmission = parseDate(record[INITIAL_SUBMISSION])
-                    val completion = parseDate(record[COMPLETION])
+        logger.info(
+            "Legacy dataset import [{}] finished -> success: {}, skipped: {}, failed: {}",
+            source,
+            results.count { it.status == ProjectImportStatus.SUCCESS },
+            results.count { it.status == ProjectImportStatus.SKIPPED },
+            results.count { it.status == ProjectImportStatus.FAILED },
+        )
 
-                    if (initialSubmission == null) {
-                        logger.warn("Initial submission missing for '{}' - skipping", title)
-                        return@forEach
-                    }
+        return results
+    }
 
-                    if (projectRepository.existsByTitleAndInitialSubmission(title, initialSubmission)) {
-                        logger.debug("Project '{}' on {} already exists - skipping", title, initialSubmission)
-                        return@forEach
-                    }
+    private fun processRecord(
+        record: CSVRecord,
+        title: String,
+        defaultCareer: Career,
+        lineNumber: Long,
+    ): ProjectImportResult {
+        return runCatching {
+            val typeCode = record[PROJECT_TYPE]?.trim()?.uppercase(Locale.getDefault())
+            val projectType = typeMapping[typeCode]
+                ?: return result(lineNumber, title, ProjectImportStatus.FAILED, message = "Unknown project type '$typeCode'")
 
-                    val project = Project(
-                        title = title,
-                        type = projectType,
-                        initialSubmission = initialSubmission,
-                        completion = completion,
-                    )
-                    project.career = defaultCareer
-                    project.applicationDomain = resolveApplicationDomain(record[APPLICATION_DOMAIN])
-                    project.tags = resolveTags(record[TAGS]).toMutableSet()
+            val initialSubmission = parseDate(record[INITIAL_SUBMISSION])
+                ?: return result(lineNumber, title, ProjectImportStatus.FAILED, message = "Initial submission date missing or invalid")
+            val completion = parseDate(record[COMPLETION])
 
-                    val savedProject = projectRepository.save(project)
+            if (projectRepository.existsByTitleAndInitialSubmission(title, initialSubmission)) {
+                val existing = projectRepository.findFirstByTitleAndInitialSubmission(title, initialSubmission)
+                val projectDto = existing?.let { enrichProjectDto(it) }
+                return result(
+                    lineNumber,
+                    title,
+                    ProjectImportStatus.SKIPPED,
+                    projectDto,
+                    message = "Project already exists for $initialSubmission",
+                )
+            }
 
-        val directorNames = parsePeopleField(record[DIRECTOR])
-        val coDirectorNames = parsePeopleField(record[CO_DIRECTOR])
-        val collaboratorsNames = parsePeopleField(record[COLLABORATOR])
+            val project = Project(
+                title = title,
+                type = projectType,
+                initialSubmission = initialSubmission,
+                completion = completion,
+                career = defaultCareer,
+            )
+            project.applicationDomain = resolveApplicationDomain(record[APPLICATION_DOMAIN])
+            project.tags = resolveTags(record[TAGS]).toMutableSet()
+
+            val savedProject = projectRepository.saveAndFlush(project)
+
+            val participants = buildParticipants(record, savedProject, defaultCareer)
+            if (participants.isNotEmpty()) {
+                val distinct = participants.distinctBy { participant ->
+                    val person = requireNotNull(participant.person) { "Participant without person" }
+                    participant.participantRole to person.publicId
+                }
+                projectParticipantRepository.saveAll(distinct)
+            }
+
+            val dto = enrichProjectDto(savedProject)
+            result(lineNumber, title, ProjectImportStatus.SUCCESS, dto, message = "Imported successfully")
+        }.getOrElse { ex ->
+            logger.warn(
+                "Failed to import project '{}' at line {}: {}",
+                title,
+                lineNumber,
+                ex.message,
+                ex
+            )
+            result(lineNumber, title, ProjectImportStatus.FAILED, message = ex.message ?: "Unexpected error")
+        }
+    }
+
+    private fun buildParticipants(
+        record: CSVRecord,
+        project: Project,
+        defaultCareer: Career,
+    ): MutableList<ProjectParticipant> {
+        val participants = mutableListOf<ProjectParticipant>()
+
+        parsePeopleField(record[DIRECTOR]).forEach { name ->
+            val professor = ensureProfessor(name)
+            val person = requireNotNull(professor.person) { "Professor without person" }
+            participants += ProjectParticipant(
+                project = project,
+                person = person,
+                participantRole = ParticipantRole.DIRECTOR,
+            )
+        }
+
+        parsePeopleField(record[CO_DIRECTOR]).forEach { name ->
+            val professor = ensureProfessor(name)
+            val person = requireNotNull(professor.person) { "Professor without person" }
+            participants += ProjectParticipant(
+                project = project,
+                person = person,
+                participantRole = ParticipantRole.CO_DIRECTOR,
+            )
+        }
+
+        parsePeopleField(record[COLLABORATOR]).forEach { name ->
+            val person = ensurePersonEntity(name)
+            participants += ProjectParticipant(
+                project = project,
+                person = person,
+                participantRole = ParticipantRole.COLLABORATOR,
+            )
+        }
+
         val studentNames = parsePeopleField(record[STUDENT_1]) +
             parsePeopleField(record[STUDENT_2]) +
             parsePeopleField(record[STUDENT_3])
 
-                    val participants = mutableListOf<ProjectParticipant>()
-
-                    directorNames.forEach { name ->
-                        val professor = ensureProfessor(name)
-                        val person = requireNotNull(professor.person) { "Professor without person" }
-                        participants += ProjectParticipant(
-                            project = savedProject,
-                            person = person,
-                            participantRole = ParticipantRole.DIRECTOR,
-                        )
-                    }
-
-                    coDirectorNames.forEach { name ->
-                        val professor = ensureProfessor(name)
-                        val person = requireNotNull(professor.person) { "Professor without person" }
-                        participants += ProjectParticipant(
-                            project = savedProject,
-                            person = person,
-                            participantRole = ParticipantRole.CO_DIRECTOR,
-                        )
-                    }
-
-                    collaboratorsNames.forEach { name ->
-                        val person = ensurePersonEntity(name)
-                        participants += ProjectParticipant(
-                            project = savedProject,
-                            person = person,
-                            participantRole = ParticipantRole.COLLABORATOR,
-                        )
-                    }
-
-                    studentNames.forEach { name ->
-                        val student = ensureStudent(name, defaultCareer)
-                        val person = requireNotNull(student.person) { "Student without person" }
-                        participants += ProjectParticipant(
-                            project = savedProject,
-                            person = person,
-                            participantRole = ParticipantRole.STUDENT,
-                        )
-                    }
-
-                    if (participants.isNotEmpty()) {
-                        val distinctParticipants = participants
-                            .groupBy { participant ->
-                                val person = requireNotNull(participant.person) { "Participant without person" }
-                                participant.participantRole to person.publicId
-                            }
-                            .values
-                            .map { it.first() }
-                        projectParticipantRepository.saveAll(distinctParticipants)
-                    }
-                }
-            }
+        studentNames.forEach { name ->
+            val student = ensureStudent(name, defaultCareer)
+            val person = requireNotNull(student.person) { "Student without person" }
+            participants += ProjectParticipant(
+                project = project,
+                person = person,
+                participantRole = ParticipantRole.STUDENT,
+            )
         }
+
+        return participants
+    }
+
+    private fun enrichProjectDto(project: Project): ProjectDTO {
+        val participants = projectParticipantRepository.findAllByProject(project).map { it.toDTO() }
+        return project.toDTO(participants)
     }
 
     private fun resolveDefaultCareer(): Career {
@@ -326,6 +387,28 @@ class LegacyDatasetImporter(
             .mapNotNull { it.trim() }
             .filter { it.isNotBlank() }
     }
+
+    private fun resetCaches() {
+        personCache.clear()
+        professorCache.clear()
+        studentCache.clear()
+        tagCache.clear()
+        domainCache.clear()
+    }
+
+    private fun result(
+        lineNumber: Long,
+        title: String?,
+        status: ProjectImportStatus,
+        project: ProjectDTO? = null,
+        message: String? = null,
+    ): ProjectImportResult = ProjectImportResult(
+        lineNumber = lineNumber,
+        title = title,
+        status = status,
+        project = project,
+        message = message,
+    )
 
     private data class PersonName(val first: String, val last: String) {
         fun toKey(): NameKey = NameKey(first.lowercase(Locale.ROOT), last.lowercase(Locale.ROOT))

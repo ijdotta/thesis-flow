@@ -1,5 +1,6 @@
 package ar.edu.uns.cs.thesisflow.bulk
 
+import ar.edu.uns.cs.thesisflow.bulk.dto.ProjectImportStatus
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
@@ -16,7 +17,15 @@ class DatasetImportRunner(
 
     override fun run(args: ApplicationArguments?) {
         logger.info("Legacy dataset import enabled - starting import process")
-        datasetImporter.import()
-        logger.info("Legacy dataset import completed")
+        val results = datasetImporter.importFromResource()
+        val success = results.count { it.status == ProjectImportStatus.SUCCESS }
+        val skipped = results.count { it.status == ProjectImportStatus.SKIPPED }
+        val failed = results.count { it.status == ProjectImportStatus.FAILED }
+        logger.info(
+            "Legacy dataset import completed -> success: {}, skipped: {}, failed: {}",
+            success,
+            skipped,
+            failed,
+        )
     }
 }
