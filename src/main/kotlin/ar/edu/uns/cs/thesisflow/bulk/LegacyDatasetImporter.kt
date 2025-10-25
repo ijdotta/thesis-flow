@@ -30,7 +30,7 @@ import org.apache.commons.csv.CSVRecord
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.time.LocalDate
@@ -48,6 +48,7 @@ class LegacyDatasetImporter(
     private val projectParticipantRepository: ProjectParticipantRepository,
     private val applicationDomainRepository: ApplicationDomainRepository,
     private val tagRepository: TagRepository,
+    private val transactionTemplate: TransactionTemplate,
 ) {
 
     private val logger = LoggerFactory.getLogger(LegacyDatasetImporter::class.java)
@@ -64,7 +65,6 @@ class LegacyDatasetImporter(
     private val tagCache = mutableMapOf<String, Tag>()
     private val domainCache = mutableMapOf<String, ApplicationDomain>()
 
-    @Transactional
     fun importFromResource(): List<ProjectImportResult> {
         val resource = ClassPathResource("data/dataset.csv")
         if (!resource.exists()) {
@@ -77,7 +77,6 @@ class LegacyDatasetImporter(
         }
     }
 
-    @Transactional
     fun import(stream: InputStream, source: String = "upload"): List<ProjectImportResult> {
         resetCaches()
         val results = mutableListOf<ProjectImportResult>()
@@ -99,7 +98,46 @@ class LegacyDatasetImporter(
                         results += result(lineNumber, null, ProjectImportStatus.FAILED, message = "Missing project title")
                         return@forEach
                     }
-                    results += processRecord(record, title, defaultCareer, lineNumber)
+
+                    val typeCode = record[PROJECT_TYPE]?.trim()?.uppercase(Locale.getDefault())
+                    val projectType = typeMapping[typeCode]
+                    if (projectType == null) {
+                        results += result(lineNumber, title, ProjectImportStatus.FAILED, message = "Unknown project type '$typeCode'")
+                        return@forEach
+                    }
+
+                    val initialSubmission = parseDate(record[INITIAL_SUBMISSION])
+                    if (initialSubmission == null) {
+                        results += result(lineNumber, title, ProjectImportStatus.FAILED, message = "Initial submission date missing or invalid")
+                        return@forEach
+                    }
+
+                    val completion = parseDate(record[COMPLETION])
+
+                    val importResult = try {
+                        transactionTemplate.execute {
+                            processRecord(
+                                record = record,
+                                title = title,
+                                projectType = projectType,
+                                initialSubmission = initialSubmission,
+                                completion = completion,
+                                defaultCareer = defaultCareer,
+                                lineNumber = lineNumber,
+                            )
+                        } ?: result(lineNumber, title, ProjectImportStatus.FAILED, message = "Unexpected empty result")
+                    } catch (ex: Exception) {
+                        logger.warn(
+                            "Failed to import project '{}' at line {}: {}",
+                            title,
+                            lineNumber,
+                            ex.message,
+                            ex
+                        )
+                        result(lineNumber, title, ProjectImportStatus.FAILED, message = ex.message ?: "Unexpected error")
+                    }
+
+                    results += importResult
                 }
             }
         }
@@ -118,63 +156,47 @@ class LegacyDatasetImporter(
     private fun processRecord(
         record: CSVRecord,
         title: String,
+        projectType: ProjectType,
+        initialSubmission: LocalDate,
+        completion: LocalDate?,
         defaultCareer: Career,
         lineNumber: Long,
     ): ProjectImportResult {
-        return runCatching {
-            val typeCode = record[PROJECT_TYPE]?.trim()?.uppercase(Locale.getDefault())
-            val projectType = typeMapping[typeCode]
-                ?: return result(lineNumber, title, ProjectImportStatus.FAILED, message = "Unknown project type '$typeCode'")
-
-            val initialSubmission = parseDate(record[INITIAL_SUBMISSION])
-                ?: return result(lineNumber, title, ProjectImportStatus.FAILED, message = "Initial submission date missing or invalid")
-            val completion = parseDate(record[COMPLETION])
-
-            if (projectRepository.existsByTitleAndInitialSubmission(title, initialSubmission)) {
-                val existing = projectRepository.findFirstByTitleAndInitialSubmission(title, initialSubmission)
-                val projectDto = existing?.let { enrichProjectDto(it) }
-                return result(
-                    lineNumber,
-                    title,
-                    ProjectImportStatus.SKIPPED,
-                    projectDto,
-                    message = "Project already exists for $initialSubmission",
-                )
-            }
-
-            val project = Project(
-                title = title,
-                type = projectType,
-                initialSubmission = initialSubmission,
-                completion = completion,
-                career = defaultCareer,
-            )
-            project.applicationDomain = resolveApplicationDomain(record[APPLICATION_DOMAIN])
-            project.tags = resolveTags(record[TAGS]).toMutableSet()
-
-            val savedProject = projectRepository.saveAndFlush(project)
-
-            val participants = buildParticipants(record, savedProject, defaultCareer)
-            if (participants.isNotEmpty()) {
-                val distinct = participants.distinctBy { participant ->
-                    val person = requireNotNull(participant.person) { "Participant without person" }
-                    participant.participantRole to person.publicId
-                }
-                projectParticipantRepository.saveAll(distinct)
-            }
-
-            val dto = enrichProjectDto(savedProject)
-            result(lineNumber, title, ProjectImportStatus.SUCCESS, dto, message = "Imported successfully")
-        }.getOrElse { ex ->
-            logger.warn(
-                "Failed to import project '{}' at line {}: {}",
-                title,
+        if (projectRepository.existsByTitleAndInitialSubmission(title, initialSubmission)) {
+            val existing = projectRepository.findFirstByTitleAndInitialSubmission(title, initialSubmission)
+            val projectDto = existing?.let { enrichProjectDto(it) }
+            return result(
                 lineNumber,
-                ex.message,
-                ex
+                title,
+                ProjectImportStatus.SKIPPED,
+                projectDto,
+                message = "Project already exists for $initialSubmission",
             )
-            result(lineNumber, title, ProjectImportStatus.FAILED, message = ex.message ?: "Unexpected error")
         }
+
+        val project = Project(
+            title = title,
+            type = projectType,
+            initialSubmission = initialSubmission,
+            completion = completion,
+            career = defaultCareer,
+        )
+        project.applicationDomain = resolveApplicationDomain(record[APPLICATION_DOMAIN])
+        project.tags = resolveTags(record[TAGS]).toMutableSet()
+
+        val savedProject = projectRepository.saveAndFlush(project)
+
+        val participants = buildParticipants(record, savedProject, defaultCareer)
+        if (participants.isNotEmpty()) {
+            val distinct = participants.distinctBy { participant ->
+                val person = requireNotNull(participant.person) { "Participant without person" }
+                participant.participantRole to person.publicId
+            }
+            projectParticipantRepository.saveAll(distinct)
+        }
+
+        val dto = enrichProjectDto(savedProject)
+        return result(lineNumber, title, ProjectImportStatus.SUCCESS, dto, message = "Imported successfully")
     }
 
     private fun buildParticipants(
