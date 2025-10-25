@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: thesis-flow
+    runtime: docker
+    region: oregon
+    plan: starter
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: JWT_SECRET
+        scope: run
+      - key: SPRING_DATASOURCE_URL
+        scope: run
+      - key: SPRING_DATASOURCE_USERNAME
+        scope: run
+      - key: SPRING_DATASOURCE_PASSWORD
+        scope: run
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: validate
+      - key: APP_DATASET_IMPORT_ENABLED
+        value: "false"
