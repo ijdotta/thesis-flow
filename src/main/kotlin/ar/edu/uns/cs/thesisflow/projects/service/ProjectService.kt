@@ -33,6 +33,7 @@ class ProjectService(
     private val personRepository: PersonRepository,
     private val careerRepository: CareerRepository,
     private val studentCareerRepository: StudentCareerRepository,
+    private val projectAuthorizationService: ProjectAuthorizationService,
 ) {
     fun findAll(pageable: Pageable): Page<ProjectDTO> =
         findAll(pageable, ProjectFilter.empty())
@@ -83,6 +84,7 @@ class ProjectService(
     @Transactional
     fun setApplicationDomain(id: String, domainId: String): ProjectDTO {
         val entity = findEntityByPublicId(id)
+        projectAuthorizationService.ensureCanModify(entity)
         val domain = applicationDomainRepository.findByPublicId(UUID.fromString(domainId))
         entity.applicationDomain = domain
         return projectRepository.save(entity).toDTO()
@@ -91,6 +93,7 @@ class ProjectService(
     @Transactional
     fun setTags(id: String, tagIds: List<String>): ProjectDTO {
         val entity = findEntityByPublicId(id)
+        projectAuthorizationService.ensureCanModify(entity)
         val tags = tagIds.asUUIDs().let { tagRepository.findAllByPublicIdIn(it) }.toMutableSet()
         entity.tags = tags
         return projectRepository.save(entity).toDTO()

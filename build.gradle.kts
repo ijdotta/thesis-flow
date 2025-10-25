@@ -29,12 +29,16 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     // Updated Flyway dependencies (core + PostgreSQL database support) pinned to newer version supporting Postgres 17
     implementation("org.flywaydb:flyway-core:10.18.2")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:10.18.2")
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
     // H2 support is already bundled in flyway-core; no separate flyway-database-h2 artifact exists.
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -47,6 +51,7 @@ dependencies {
     testImplementation("com.h2database:h2")
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("org.assertj:assertj-core:3.26.3")
+    testImplementation("org.springframework.security:spring-security-test")
 }
 
 kotlin {

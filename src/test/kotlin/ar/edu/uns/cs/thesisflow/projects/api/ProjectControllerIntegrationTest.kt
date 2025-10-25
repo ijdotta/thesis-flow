@@ -1,5 +1,7 @@
 package ar.edu.uns.cs.thesisflow.projects.api
 
+import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
+import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.*
@@ -13,18 +15,21 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import java.time.LocalDate
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser(username = "admin", roles = ["ADMIN"])
 class ProjectControllerIntegrationTest @Autowired constructor(
     private val mockMvc: MockMvc,
     private val projectRepository: ProjectRepository,
     private val participantRepository: ProjectParticipantRepository,
     private val personRepository: PersonRepository,
     private val domainRepository: ApplicationDomainRepository,
+    private val careerRepository: CareerRepository,
 ) {
     private lateinit var completed: Project
     private lateinit var inProgress: Project
@@ -35,15 +40,18 @@ class ProjectControllerIntegrationTest @Autowired constructor(
         projectRepository.deleteAll()
         domainRepository.deleteAll()
         personRepository.deleteAll()
+        careerRepository.deleteAll()
 
         val domain = domainRepository.save(ApplicationDomain(name = "Distributed Systems"))
+        val career = careerRepository.save(Career(name = "Career ${System.nanoTime()}"))
         completed = projectRepository.save(
             Project(
                 title = "Consensus Algorithms",
                 type = ProjectType.THESIS,
                 subType = mutableSetOf(ProjectSubType.TYPE_1),
                 applicationDomain = domain,
-                completion = LocalDate.now()
+                completion = LocalDate.now(),
+                career = career
             )
         )
         inProgress = projectRepository.save(
@@ -52,7 +60,8 @@ class ProjectControllerIntegrationTest @Autowired constructor(
                 type = ProjectType.THESIS,
                 subType = mutableSetOf(ProjectSubType.TYPE_1),
                 applicationDomain = domain,
-                completion = null
+                completion = null,
+                career = career
             )
         )
         val prof = personRepository.save(Person(name = "Elena", lastname = "Martinez"))

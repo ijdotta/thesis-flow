@@ -21,3 +21,7 @@ logging:
   level:
     root: WARN
     org.hibernate.SQL: DEBUG
+
+jwt:
+  secret: test-secret-test-secret-test-secret-test
+  expiration: PT1H
