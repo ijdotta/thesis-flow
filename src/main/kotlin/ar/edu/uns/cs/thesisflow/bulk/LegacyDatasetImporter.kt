@@ -366,9 +366,17 @@ class LegacyDatasetImporter(
             val firstName = normalizePersonComponent(parts.getOrNull(1))
             PersonName(first = firstName, last = lastName)
         } else {
-            val tokens = sanitized.split(Regex("\\s+"))
-            val firstName = normalizePersonComponent(tokens.firstOrNull())
-            val lastName = normalizePersonComponent(tokens.drop(1).joinToString(" ").ifBlank { tokens.firstOrNull() })
+            val tokens = sanitized.split(Regex("\\s+")).filter { it.isNotBlank() }
+            if (tokens.isEmpty()) {
+                return PersonName(first = "unknown", last = "unknown")
+            }
+            val firstName = normalizePersonComponent(tokens.first())
+            val lastName = if (tokens.size >= 2) {
+                normalizePersonComponent(tokens.drop(1).joinToString(" "))
+            } else {
+                // Single token case: use it as both first and last name, or just first
+                ""
+            }
             PersonName(first = firstName, last = lastName)
         }
     }
