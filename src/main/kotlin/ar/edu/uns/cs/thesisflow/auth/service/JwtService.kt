@@ -7,6 +7,7 @@ import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.io.Decoders
+import io.jsonwebtoken.io.DecodingException
 import io.jsonwebtoken.security.Keys
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
@@ -28,6 +29,8 @@ class JwtService(
         val secret = jwtProperties.secret
         val keyBytes = try {
             Decoders.BASE64.decode(secret)
+        } catch (_: DecodingException) {
+            secret.toByteArray(StandardCharsets.UTF_8)
         } catch (_: IllegalArgumentException) {
             secret.toByteArray(StandardCharsets.UTF_8)
         }
