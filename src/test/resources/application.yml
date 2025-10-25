@@ -25,3 +25,8 @@ logging:
 jwt:
   secret: test-secret-test-secret-test-secret-test
   expiration: PT1H
+
+app:
+  dataset:
+    import:
+      enabled: false

@@ -22,3 +22,8 @@ server:
 jwt:
   secret: ${JWT_SECRET:change-me-change-me-change-me-change-me}
   expiration: PT1H
+
+app:
+  dataset:
+    import:
+      enabled: false

@@ -7,4 +7,5 @@ import java.util.UUID
 interface CareerRepository: JpaRepository<Career, Long> {
     fun findByPublicId(publicId: UUID): Career?
     fun findAllByPublicIdIn(publicIds: Collection<UUID>): List<Career>
+    fun findByName(name: String): Career?
 }
