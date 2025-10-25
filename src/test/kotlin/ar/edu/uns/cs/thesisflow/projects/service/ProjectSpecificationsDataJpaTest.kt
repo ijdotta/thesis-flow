@@ -1,5 +1,7 @@
 package ar.edu.uns.cs.thesisflow.projects.service
 
+import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
+import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.*
@@ -22,6 +24,7 @@ class ProjectSpecificationsDataJpaTest @Autowired constructor(
     private val participantRepository: ProjectParticipantRepository,
     private val domainRepository: ApplicationDomainRepository,
     private val personRepository: PersonRepository,
+    private val careerRepository: CareerRepository,
 ) {
     private lateinit var projectCompleted: Project
     private lateinit var projectInProgress: Project
@@ -29,19 +32,22 @@ class ProjectSpecificationsDataJpaTest @Autowired constructor(
     @BeforeEach
     fun setup() {
         val domain = domainRepository.save(ApplicationDomain(name = "Machine Learning"))
+        val career = careerRepository.save(Career(name = "Career ${System.nanoTime()}"))
         projectCompleted = projectRepository.save(Project(
             title = "Graph Neural Networks",
             type = ProjectType.THESIS,
             subType = mutableSetOf(ProjectSubType.TYPE_1),
             applicationDomain = domain,
-            completion = LocalDate.now()
+            completion = LocalDate.now(),
+            career = career
         ))
         projectInProgress = projectRepository.save(Project(
             title = "Vision Transformers",
             type = ProjectType.THESIS,
             subType = mutableSetOf(ProjectSubType.TYPE_1),
             applicationDomain = domain,
-            completion = null
+            completion = null,
+            career = career
         ))
         val profPerson = personRepository.save(Person(name = "Alice", lastname = "Garcia"))
         val studPerson = personRepository.save(Person(name = "Bob", lastname = "Lopez"))

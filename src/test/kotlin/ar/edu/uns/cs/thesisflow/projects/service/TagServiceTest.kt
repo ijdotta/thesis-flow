@@ -1,6 +1,7 @@
 package ar.edu.uns.cs.thesisflow.projects.service
 
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Tag
+import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -10,7 +11,8 @@ import org.springframework.data.domain.PageRequest
 
 @DataJpaTest
 class TagServiceTest @Autowired constructor(
-    private val repository: TagRepository
+    private val repository: TagRepository,
+    private val projectRepository: ProjectRepository,
 ) {
     private val service = TagService(repository, projectRepository)
 

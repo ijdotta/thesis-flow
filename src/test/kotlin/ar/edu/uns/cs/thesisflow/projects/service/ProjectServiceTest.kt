@@ -1,33 +1,51 @@
 package ar.edu.uns.cs.thesisflow.projects.service
 
-import ar.edu.uns.cs.thesisflow.people.service.PersonService
-import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
-import ar.edu.uns.cs.thesisflow.projects.persistance.entity.*
-import ar.edu.uns.cs.thesisflow.projects.persistance.repository.*
-import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
+import ar.edu.uns.cs.thesisflow.auth.model.AuthUser
+import ar.edu.uns.cs.thesisflow.auth.model.AuthUserPrincipal
+import ar.edu.uns.cs.thesisflow.auth.model.UserRole
+import ar.edu.uns.cs.thesisflow.auth.service.CurrentUserService
+import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
+import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
+import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectSubType
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Tag
+import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ApplicationDomainRepository
+import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectParticipantRepository
+import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
+import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
+import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.data.domain.PageRequest
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import java.time.LocalDate
 
 @DataJpaTest
 @Suppress("unused")
 class ProjectServiceTest @Autowired constructor(
     private val projectRepository: ProjectRepository,
-    applicationDomainRepository: ApplicationDomainRepository,
+    private val applicationDomainRepository: ApplicationDomainRepository,
     private val tagRepository: TagRepository,
-    projectParticipantRepository: ProjectParticipantRepository,
-    studentRepository: StudentRepository,
-    professorRepository: ProfessorRepository,
-    personRepository: PersonRepository,
+    private val projectParticipantRepository: ProjectParticipantRepository,
+    private val studentRepository: StudentRepository,
+    private val professorRepository: ProfessorRepository,
+    private val personRepository: PersonRepository,
+    private val careerRepository: CareerRepository,
+    private val studentCareerRepository: StudentCareerRepository,
 ) {
-    private val personService = PersonService(
-        personRepository,
-        studentRepository,
+    private val currentUserService = CurrentUserService()
+    private val projectAuthorizationService = ProjectAuthorizationService(
+        currentUserService,
         professorRepository,
         projectParticipantRepository
     )
@@ -38,12 +56,45 @@ class ProjectServiceTest @Autowired constructor(
         projectParticipantRepository,
         studentRepository,
         professorRepository,
-        personRepository
+        personRepository,
+        careerRepository,
+        studentCareerRepository,
+        projectAuthorizationService
     )
+
+    private lateinit var defaultCareer: Career
+
+    @BeforeEach
+    fun setup() {
+        defaultCareer = careerRepository.save(Career(name = "Career ${System.nanoTime()}"))
+        val authUser = AuthUser(
+            username = "admin-test",
+            password = "noop",
+            role = UserRole.ADMIN,
+        )
+        val principal = AuthUserPrincipal.from(authUser)
+        val authentication = UsernamePasswordAuthenticationToken(
+            principal,
+            null,
+            principal.authorities
+        )
+        SecurityContextHolder.getContext().authentication = authentication
+    }
+
+    @AfterEach
+    fun cleanup() {
+        SecurityContextHolder.clearContext()
+    }
 
     @Test
     fun `findAll with filter returns matching project`() {
-        projectRepository.save(Project(title = "Filtered Project", type = ProjectType.THESIS, subType = mutableSetOf(ProjectSubType.TYPE_1)))
+        val project = Project(
+            title = "Filtered Project",
+            type = ProjectType.THESIS,
+            subType = mutableSetOf(ProjectSubType.TYPE_1)
+        )
+        project.career = defaultCareer
+        projectRepository.save(project)
         val page = projectService.findAll(PageRequest.of(0,5), ProjectFilter(title = "Filtered"))
         assertThat(page.totalElements).isEqualTo(1)
         assertThat(page.content.first().title).isEqualTo("Filtered Project")
@@ -51,7 +102,9 @@ class ProjectServiceTest @Autowired constructor(
 
     @Test
     fun `setTags replaces tags`() {
-        val project = projectRepository.save(Project(title = "Taggy", type = ProjectType.THESIS, subType = mutableSetOf(ProjectSubType.TYPE_1)))
+        val project = Project(title = "Taggy", type = ProjectType.THESIS, subType = mutableSetOf(ProjectSubType.TYPE_1))
+        project.career = defaultCareer
+        projectRepository.save(project)
         val tag = tagRepository.save(Tag(name = "Kotlin"))
         val updated = projectService.setTags(project.publicId.toString(), listOf(tag.publicId.toString()))
         assertThat(updated.tags).isNotNull()
@@ -64,7 +117,8 @@ class ProjectServiceTest @Autowired constructor(
             title = "New",
             type = ProjectType.THESIS.name,
             subtype = listOf(ProjectSubType.TYPE_1.name),
-            initialSubmission = LocalDate.now()
+            initialSubmission = LocalDate.now(),
+            careerPublicId = defaultCareer.publicId.toString()
         )
         val created = projectService.create(dto)
         assertThat(created.title).isEqualTo("New")

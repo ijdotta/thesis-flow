@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.security.access.AccessDeniedException
 import java.time.Instant
 
 @RestControllerAdvice
@@ -24,6 +25,14 @@ class ControllerExceptionHandler {
         logger.info(ex.message, ex)
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
+            .body(getErrorResponse(ex, request))
+    }
+
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleForbidden(ex: AccessDeniedException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
+        logger.warn(ex.message)
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
             .body(getErrorResponse(ex, request))
     }
 
