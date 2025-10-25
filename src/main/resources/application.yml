@@ -2,12 +2,12 @@ spring:
   application:
     name: thesis-flow
   datasource:
-    url: jdbc:postgresql://localhost:5432/thesis_flow
-    username: thesis_flow_owner
-    password: owner
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/thesis_flow}
+    username: ${SPRING_DATASOURCE_USERNAME:thesis_flow_owner}
+    password: ${SPRING_DATASOURCE_PASSWORD:owner}
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -17,13 +17,13 @@ spring:
     baseline-on-migrate: true
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 jwt:
   secret: ${JWT_SECRET:change-me-change-me-change-me-change-me}
-  expiration: PT1H
+  expiration: ${JWT_EXPIRATION:PT1H}
 
 app:
   dataset:
     import:
-      enabled: false
+      enabled: ${APP_DATASET_IMPORT_ENABLED:false}
