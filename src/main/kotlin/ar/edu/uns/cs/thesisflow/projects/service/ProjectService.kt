@@ -165,6 +165,8 @@ class ProjectService(
      * @param file The CSV file containing project data
      * @return A map containing the import results (e.g., success count, errors)
      */
+    fun getAll(): List<Project> = projectRepository.findAll()
+
     @Transactional
     fun bulkImportFromCsv(file: MultipartFile): Map<String, Any> {
         val rawProjectData = csvParser.readProjectsFromCsv(file)
