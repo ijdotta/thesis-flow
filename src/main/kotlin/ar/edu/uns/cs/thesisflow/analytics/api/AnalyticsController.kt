@@ -47,13 +47,15 @@ class AnalyticsController(
     @GetMapping("/professor-network")
     fun getProfessorNetwork(
         @RequestParam(required = false) careerIds: String?,
+        @RequestParam(required = false) professorIds: String?,
         @RequestParam(required = false) fromYear: Int?,
         @RequestParam(required = false) toYear: Int?,
     ): ResponseEntity<ProfessorNetworkResponse> {
         val careerUuids = careerIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val professorUuids = professorIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
         
         return ResponseEntity.ok(
-            analyticsService.getProfessorNetwork(careerUuids, fromYear, toYear)
+            analyticsService.getProfessorNetwork(careerUuids, professorUuids, fromYear, toYear)
         )
     }
 
