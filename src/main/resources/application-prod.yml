@@ -5,6 +5,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    baselineOnMigrate: true
+
 
 
