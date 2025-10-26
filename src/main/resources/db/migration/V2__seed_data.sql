@@ -42,12 +42,13 @@ INSERT INTO student_career (public_id, student_id, career_id) VALUES
  ('fffffff2-ffff-ffff-ffff-fffffffffff2', (SELECT id FROM student WHERE public_id='dddddddd-dddd-dddd-dddd-ddddddddddd2'), (SELECT id FROM career WHERE public_id='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2'));
 
 -- PRIMARY PROJECT
-INSERT INTO project (public_id, title, type, initial_submission, completion, application_domain_id, created_at, updated_at) VALUES (
+INSERT INTO project (public_id, title, type, initial_submission, completion, career_id, application_domain_id, created_at, updated_at) VALUES (
  '99999999-9999-9999-9999-999999999999',
  'Sample Thesis Project',
  'THESIS',
  CURRENT_DATE,
  NULL,
+ (SELECT id FROM career WHERE name = 'Software Engineering' LIMIT 1),
  (SELECT id FROM application_domain WHERE public_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1'),
  CURRENT_TIMESTAMP,
  CURRENT_TIMESTAMP
@@ -68,12 +69,13 @@ INSERT INTO project_tags (project_id, tag_id) VALUES
  ((SELECT id FROM project WHERE public_id='99999999-9999-9999-9999-999999999999'), (SELECT id FROM tag WHERE public_id='cccccccc-cccc-cccc-cccc-ccccccccccc2'));
 
 -- OPTIONAL: Add a second project to diversify dataset
-INSERT INTO project (public_id, title, type, initial_submission, completion, application_domain_id, created_at, updated_at) VALUES (
+INSERT INTO project (public_id, title, type, initial_submission, completion, career_id, application_domain_id, created_at, updated_at) VALUES (
  '88888888-8888-8888-8888-888888888888',
  'Web Platform Final Project',
  'FINAL_PROJECT',
  CURRENT_DATE,
  NULL,
+ (SELECT id FROM career WHERE name = 'Software Engineering' LIMIT 1),
  (SELECT id FROM application_domain WHERE public_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2'),
  CURRENT_TIMESTAMP,
  CURRENT_TIMESTAMP

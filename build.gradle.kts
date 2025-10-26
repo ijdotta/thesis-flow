@@ -33,10 +33,8 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    // Flyway disabled due to circular dependency with JPA in Spring Boot 3.5
-    // Use Hibernate DDL-auto for schema generation instead
-    // implementation("org.flywaydb:flyway-core:10.18.2")
-    // runtimeOnly("org.flywaydb:flyway-database-postgresql:10.18.2")
+    implementation("org.flywaydb:flyway-core:10.18.2")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql:10.18.2")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
