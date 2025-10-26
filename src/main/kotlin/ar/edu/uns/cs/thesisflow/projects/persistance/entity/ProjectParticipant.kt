@@ -22,7 +22,7 @@ class ProjectParticipant(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false, updatable = false)
     var project: Project,
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "person_id", nullable = false, updatable = false)
     var person: Person,
     @Enumerated(EnumType.STRING)
