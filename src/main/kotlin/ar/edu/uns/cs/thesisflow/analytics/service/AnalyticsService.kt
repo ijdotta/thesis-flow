@@ -98,6 +98,7 @@ class AnalyticsService(
 
     fun getProfessorNetwork(
         careerIds: List<UUID>? = null,
+        professorIds: List<UUID>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): ProfessorNetworkResponse {
@@ -115,7 +116,10 @@ class AnalyticsService(
         val collaborations = mutableMapOf<Pair<UUID, UUID>, Int>()
 
         projects.forEach { project ->
-            val projectProfessors = project.participants.map { it.person.publicId to "${it.person.name} ${it.person.lastname}" }
+            val projectProfessors = project.participants
+                .filter { it.participantRole in setOf(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR, ParticipantRole.COLLABORATOR) }
+                .filter { professorIds == null || it.person.publicId in professorIds }
+                .map { it.person.publicId to "${it.person.name} ${it.person.lastname}" }
             
             projectProfessors.forEach { (profId, profName) ->
                 professors[profId] = profName to (professors[profId]?.second ?: 0) + 1
