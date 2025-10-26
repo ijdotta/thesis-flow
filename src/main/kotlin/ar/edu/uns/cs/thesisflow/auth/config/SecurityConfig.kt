@@ -38,6 +38,8 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/auth/login").permitAll()
+                    .requestMatchers("/analytics/**").permitAll()
+                    .requestMatchers("/projects/public/**").permitAll()
                     .requestMatchers(HttpMethod.PUT, "/projects/*/application-domain", "/projects/*/tags")
                     .hasAnyRole("ADMIN", "PROFESSOR")
                     .requestMatchers(HttpMethod.GET, "/projects/**")
