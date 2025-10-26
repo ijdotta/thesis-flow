@@ -6,8 +6,6 @@ services:
     plan: starter
     healthCheckPath: /actuator/health
     envVars:
-      - key: JWT_SECRET
-        scope: run
       - key: SPRING_DATASOURCE_URL
         scope: run
       - key: SPRING_DATASOURCE_USERNAME
@@ -15,6 +13,19 @@ services:
       - key: SPRING_DATASOURCE_PASSWORD
         scope: run
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
-        value: validate
+        value: update
+      - key: SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT
+        value: org.hibernate.dialect.PostgreSQLDialect
+      - key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+        value: "5"
+      - key: SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT
+        value: "30000"
+      - key: JWT_SECRET
+        scope: run
+      - key: JWT_EXPIRATION
+        value: PT1H
+      - key: SPRING_FLYWAY_ENABLED
+        value: "true"
       - key: APP_DATASET_IMPORT_ENABLED
         value: "false"
+
