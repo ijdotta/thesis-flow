@@ -56,6 +56,7 @@ class LegacyDatasetImporter(
     private val typeMapping = mapOf(
         "PF" to ProjectType.FINAL_PROJECT,
         "TL" to ProjectType.THESIS,
+        "TF" to ProjectType.THESIS,
     )
     private val nameNormalizerLocale = Locale.forLanguageTag("es-AR")
 
