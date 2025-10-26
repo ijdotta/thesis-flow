@@ -56,6 +56,7 @@ class LegacyDatasetImporter(
     private val typeMapping = mapOf(
         "PF" to ProjectType.FINAL_PROJECT,
         "TL" to ProjectType.THESIS,
+        "TF" to ProjectType.THESIS,
     )
     private val nameNormalizerLocale = Locale.forLanguageTag("es-AR")
 
@@ -352,7 +353,9 @@ class LegacyDatasetImporter(
     }
 
     private fun parsePeopleField(raw: String?): List<PersonName> {
-        return splitCompositeField(raw, splitHyphen = true).mapNotNull { parsePersonName(it) }
+        // Each cell should contain exactly ONE person in format <lastname>,<firstname>
+        // Do NOT split on commas since comma is part of the name format
+        return listOfNotNull(parsePersonName(raw))
     }
 
     private fun parsePersonName(raw: String?): PersonName? {
@@ -360,24 +363,36 @@ class LegacyDatasetImporter(
         if (value.isBlank()) return null
 
         val sanitized = value.replace("\u00a0", " ") // non-breaking space
+        
+        // Format should be <lastname>,<firstname>
         return if (sanitized.contains(',')) {
             val parts = sanitized.split(',', limit = 2)
             val lastName = normalizePersonComponent(parts[0])
             val firstName = normalizePersonComponent(parts.getOrNull(1))
+            
+            if (lastName.isBlank() || firstName.isBlank()) {
+                logger.warn("Invalid person format '{}': both lastname and firstname are required", sanitized)
+                return null
+            }
+            
             PersonName(first = firstName, last = lastName)
         } else {
+            // Fallback for single names or space-separated (for backward compatibility)
             val tokens = sanitized.split(Regex("\\s+")).filter { it.isNotBlank() }
             if (tokens.isEmpty()) {
-                return PersonName(first = "unknown", last = "unknown")
+                return null
             }
-            val firstName = normalizePersonComponent(tokens.first())
-            val lastName = if (tokens.size >= 2) {
-                normalizePersonComponent(tokens.drop(1).joinToString(" "))
+            
+            if (tokens.size == 1) {
+                // Single token: treat as last name, first name empty
+                val lastName = normalizePersonComponent(tokens[0])
+                PersonName(first = "", last = lastName)
             } else {
-                // Single token case: use it as both first and last name, or just first
-                ""
+                // Multiple tokens: last token is first name, rest is last name
+                val lastName = normalizePersonComponent(tokens.dropLast(1).joinToString(" "))
+                val firstName = normalizePersonComponent(tokens.last())
+                PersonName(first = firstName, last = lastName)
             }
-            PersonName(first = firstName, last = lastName)
         }
     }
 
