@@ -67,3 +67,45 @@ data class FiltersResponse(
     val professors: List<FilterOption>,
     val yearRange: YearRange
 )
+
+// Project Type Statistics DTOs
+data class ProjectTypeStatsData(
+    val projectType: String,
+    val displayName: String,
+    val year: Int,
+    val projectCount: Int,
+    val percentage: Double
+)
+
+data class ProjectTypeStatsResponse(
+    val data: List<ProjectTypeStatsData>
+)
+
+// Dashboard Statistics DTOs
+data class OverviewStats(
+    val totalProjects: Int,
+    val filteredProjects: Int,
+    val uniqueDomains: Int,
+    val uniqueTags: Int,
+    val uniqueProfessors: Int
+)
+
+data class TopItemData(
+    val id: String,
+    val name: String,
+    val count: Int
+)
+
+data class TopProfessorData(
+    val id: String,
+    val name: String,
+    val projectCount: Int
+)
+
+data class DashboardStatsResponse(
+    val overview: OverviewStats,
+    val topDomains: List<TopItemData>,
+    val topTags: List<TopItemData>,
+    val topProfessors: List<TopProfessorData>
+)
+
