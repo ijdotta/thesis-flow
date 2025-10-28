@@ -17,6 +17,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.data.domain.PageRequest
@@ -43,6 +44,7 @@ class ProjectServiceTest @Autowired constructor(
         professorRepository,
         projectParticipantRepository
     )
+    private val mockCsvParser = Mockito.mock(ar.edu.uns.cs.thesisflow.projects.bulk.ProjectCsvParser::class.java)
     private val projectService = ProjectService(
         projectRepository,
         applicationDomainRepository,
@@ -53,7 +55,8 @@ class ProjectServiceTest @Autowired constructor(
         personRepository,
         careerRepository,
         studentCareerRepository,
-        projectAuthorizationService
+        projectAuthorizationService,
+        mockCsvParser
     )
 
     private lateinit var defaultCareer: Career
