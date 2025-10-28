@@ -138,6 +138,12 @@ class ProjectController(
         @RequestBody setParticipantsRequest: SetParticipantsRequest
     ) = projectService.setParticipants(id, setParticipantsRequest.participants)
 
+    @PutMapping("/{id}/completion")
+    fun setCompletionDate(
+        @PathVariable id: String,
+        @RequestBody setCompletionDateRequest: SetCompletionDateRequest
+    ) = projectService.setCompletionDate(id, setCompletionDateRequest.completionDate)
+
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: String) = projectService.delete(id)
 

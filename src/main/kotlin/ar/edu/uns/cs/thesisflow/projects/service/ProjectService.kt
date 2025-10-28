@@ -111,6 +111,14 @@ class ProjectService(
     }
 
     @Transactional
+    fun setCompletionDate(id: String, completionDate: java.time.LocalDate): ProjectDTO {
+        val entity = findEntityByPublicId(id)
+        projectAuthorizationService.ensureCanModify(entity)
+        entity.completion = completionDate
+        return projectRepository.save(entity).toDTO()
+    }
+
+    @Transactional
     fun setCareer(id: String, careerId: String): ProjectDTO {
         val entity = findEntityByPublicId(id)
         val career = careerRepository.findByPublicId(UUID.fromString(careerId))
