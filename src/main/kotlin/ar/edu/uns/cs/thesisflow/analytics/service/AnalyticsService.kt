@@ -194,8 +194,10 @@ class AnalyticsService(
             .map { FilterOption(it.publicId.toString(), it.name) }
             .sortedBy { it.name }
 
+        // FIX: Only return professors with DIRECTOR or CO_DIRECTOR roles
         val professors = allProjects
             .flatMap { it.participants }
+            .filter { it.participantRole in setOf(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR) }
             .map { it.person }
             .distinctBy { it.publicId }
             .map { FilterOption(it.publicId.toString(), "${it.name} ${it.lastname}") }
@@ -209,5 +211,146 @@ class AnalyticsService(
         }
 
         return FiltersResponse(careers, professors, yearRange)
+    }
+
+    fun getProjectTypeStats(
+        careerIds: List<UUID>? = null,
+        professorIds: List<UUID>? = null,
+        fromYear: Int? = null,
+        toYear: Int? = null,
+        applicationDomainIds: List<UUID>? = null,
+    ): ProjectTypeStatsResponse {
+        val filteredProjects = projectRepository.findAll()
+            .filter { project ->
+                careerIds == null || project.career?.publicId in careerIds
+            }
+            .filter { project ->
+                val projectYear = project.initialSubmission.year
+                (fromYear == null || projectYear >= fromYear) &&
+                (toYear == null || projectYear <= toYear)
+            }
+            .filter { project ->
+                applicationDomainIds == null || project.applicationDomain?.publicId in applicationDomainIds
+            }
+            .filter { project ->
+                if (professorIds == null) true
+                else project.participants.any { 
+                    it.person.publicId in professorIds &&
+                    it.participantRole in setOf(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR)
+                }
+            }
+
+        val totalProjects = filteredProjects.size
+        
+        val data = filteredProjects
+            .groupBy { it.type to it.initialSubmission.year }
+            .map { (key, projects) ->
+                val (type, year) = key
+                val count = projects.size
+                val percentage = if (totalProjects > 0) (count.toDouble() / totalProjects) * 100 else 0.0
+                
+                ProjectTypeStatsData(
+                    projectType = type.name,
+                    displayName = getProjectTypeDisplayName(type),
+                    year = year,
+                    projectCount = count,
+                    percentage = String.format("%.1f", percentage).toDouble()
+                )
+            }
+            .sortedWith(compareBy({ it.year }, { it.projectType }))
+
+        return ProjectTypeStatsResponse(data)
+    }
+
+    fun getDashboardStats(
+        careerIds: List<UUID>? = null,
+        professorIds: List<UUID>? = null,
+        fromYear: Int? = null,
+        toYear: Int? = null,
+        applicationDomainIds: List<UUID>? = null,
+        topK: Int = 10,
+    ): DashboardStatsResponse {
+        val allProjects = projectRepository.findAll()
+        val filteredProjects = allProjects
+            .filter { project ->
+                careerIds == null || project.career?.publicId in careerIds
+            }
+            .filter { project ->
+                val projectYear = project.initialSubmission.year
+                (fromYear == null || projectYear >= fromYear) &&
+                (toYear == null || projectYear <= toYear)
+            }
+            .filter { project ->
+                applicationDomainIds == null || project.applicationDomain?.publicId in applicationDomainIds
+            }
+            .filter { project ->
+                if (professorIds == null) true
+                else project.participants.any {
+                    it.person.publicId in professorIds &&
+                    it.participantRole in setOf(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR)
+                }
+            }
+
+        // Overview statistics
+        val overview = OverviewStats(
+            totalProjects = allProjects.size,
+            filteredProjects = filteredProjects.size,
+            uniqueDomains = filteredProjects.mapNotNull { it.applicationDomain?.publicId }.distinct().size,
+            uniqueTags = filteredProjects.flatMap { it.tags }.map { it.publicId }.distinct().size,
+            uniqueProfessors = filteredProjects
+                .flatMap { it.participants }
+                .filter { it.participantRole in setOf(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR) }
+                .map { it.person.publicId }
+                .distinct()
+                .size
+        )
+
+        // Top domains
+        val topDomains = filteredProjects
+            .mapNotNull { it.applicationDomain }
+            .groupingBy { it.publicId to it.name }
+            .eachCount()
+            .map { (key, count) ->
+                TopItemData(id = key.first.toString(), name = key.second, count = count)
+            }
+            .sortedByDescending { it.count }
+            .take(minOf(topK, 20))
+
+        // Top tags
+        val topTags = filteredProjects
+            .flatMap { it.tags }
+            .groupingBy { it.publicId to it.name }
+            .eachCount()
+            .map { (key, count) ->
+                TopItemData(id = key.first.toString(), name = key.second, count = count)
+            }
+            .sortedByDescending { it.count }
+            .take(minOf(topK, 20))
+
+        // Top professors
+        val topProfessors = filteredProjects
+            .flatMap { it.participants }
+            .filter { it.participantRole in setOf(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR) }
+            .groupingBy { it.person.publicId to "${it.person.name} ${it.person.lastname}" }
+            .eachCount()
+            .map { (key, count) ->
+                TopProfessorData(id = key.first.toString(), name = key.second, projectCount = count)
+            }
+            .sortedByDescending { it.projectCount }
+            .take(minOf(topK, 20))
+
+        return DashboardStatsResponse(
+            overview = overview,
+            topDomains = topDomains,
+            topTags = topTags,
+            topProfessors = topProfessors
+        )
+    }
+
+    private fun getProjectTypeDisplayName(type: ProjectType): String {
+        return when (type) {
+            ProjectType.THESIS -> "Tesis"
+            ProjectType.FINAL_PROJECT -> "Trabajo Final"
+        }
     }
 }

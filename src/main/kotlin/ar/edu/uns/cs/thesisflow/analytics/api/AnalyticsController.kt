@@ -76,4 +76,39 @@ class AnalyticsController(
     fun getFilters(): ResponseEntity<FiltersResponse> {
         return ResponseEntity.ok(analyticsService.getFilters())
     }
+
+    @GetMapping("/project-type-stats")
+    fun getProjectTypeStats(
+        @RequestParam(required = false) careerIds: String?,
+        @RequestParam(required = false) professorIds: String?,
+        @RequestParam(required = false) fromYear: Int?,
+        @RequestParam(required = false) toYear: Int?,
+        @RequestParam(required = false) applicationDomainIds: String?,
+    ): ResponseEntity<ProjectTypeStatsResponse> {
+        val careerUuids = careerIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val professorUuids = professorIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val domainUuids = applicationDomainIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+
+        return ResponseEntity.ok(
+            analyticsService.getProjectTypeStats(careerUuids, professorUuids, fromYear, toYear, domainUuids)
+        )
+    }
+
+    @GetMapping("/dashboard-stats")
+    fun getDashboardStats(
+        @RequestParam(required = false) careerIds: String?,
+        @RequestParam(required = false) professorIds: String?,
+        @RequestParam(required = false) fromYear: Int?,
+        @RequestParam(required = false) toYear: Int?,
+        @RequestParam(required = false) applicationDomainIds: String?,
+        @RequestParam(required = false, defaultValue = "10") topK: Int,
+    ): ResponseEntity<DashboardStatsResponse> {
+        val careerUuids = careerIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val professorUuids = professorIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val domainUuids = applicationDomainIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+
+        return ResponseEntity.ok(
+            analyticsService.getDashboardStats(careerUuids, professorUuids, fromYear, toYear, domainUuids, topK)
+        )
+    }
 }
