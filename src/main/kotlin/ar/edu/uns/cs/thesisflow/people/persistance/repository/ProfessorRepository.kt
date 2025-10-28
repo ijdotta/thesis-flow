@@ -9,4 +9,5 @@ interface ProfessorRepository: JpaRepository<Professor, Long> {
     fun findByPublicId(publicId: UUID): Professor?
     fun existsByPersonPublicId(personPublicId: UUID): Boolean
     fun findFirstByPerson(person: Person): Professor?
+    fun findByEmail(email: String): Professor?
 }
