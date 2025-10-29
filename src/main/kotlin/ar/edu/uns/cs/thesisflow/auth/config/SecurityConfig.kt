@@ -60,11 +60,15 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration().apply {
-            allowedOriginPatterns = listOf("*")
+            allowedOrigins = listOf(
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "https://thesisflow-fe.vercel.app"
+            )
             allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             allowedHeaders = listOf("*")
             exposedHeaders = listOf("Authorization")
-            allowCredentials = false
+            allowCredentials = true
             maxAge = 3600
         }
         return UrlBasedCorsConfigurationSource().apply {
