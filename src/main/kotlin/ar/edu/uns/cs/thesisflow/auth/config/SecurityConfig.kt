@@ -30,9 +30,9 @@ class SecurityConfig(
     fun passwordEncoder(): PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity, corsConfigSource: CorsConfigurationSource): SecurityFilterChain {
         http
-            .cors { }
+            .cors { it.configurationSource(corsConfigSource) }
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
