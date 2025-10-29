@@ -4,14 +4,19 @@ import ar.edu.uns.cs.thesisflow.common.persistence.BaseEntity
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Professor
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
 import jakarta.persistence.FetchType
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import java.time.Instant
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
+@EntityListeners(AuditingEntityListener::class)
 @Table(
     name = "professor_login_token",
     indexes = [
@@ -34,6 +39,13 @@ class ProfessorLoginToken(
     @Column(nullable = true)
     var usedAt: Instant? = null,
 ) : BaseEntity() {
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    var createdAt: Instant? = null
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    var updatedAt: Instant? = null
     fun isExpired(): Boolean = Instant.now().isAfter(expiresAt)
 
     fun isAlreadyUsed(): Boolean = usedAt != null
