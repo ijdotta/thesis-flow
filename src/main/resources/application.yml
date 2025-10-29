@@ -23,6 +23,18 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.mailtrap.io}
+    port: ${SPRING_MAIL_PORT:2525}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 server:
   port: ${SERVER_PORT:8080}
@@ -30,6 +42,13 @@ server:
 jwt:
   secret: ${JWT_SECRET:change-me-change-me-change-me-change-me}
   expiration: ${JWT_EXPIRATION:PT1H}
+
+professor-auth:
+  token-expiry-minutes: ${PROFESSOR_AUTH_TOKEN_EXPIRY_MINUTES:15}
+  token-length: ${PROFESSOR_AUTH_TOKEN_LENGTH:64}
+  rate-limit-requests: ${PROFESSOR_AUTH_RATE_LIMIT_REQUESTS:10}
+  rate-limit-window-minutes: ${PROFESSOR_AUTH_RATE_LIMIT_WINDOW_MINUTES:60}
+  frontend-redirect-url: ${PROFESSOR_AUTH_FRONTEND_REDIRECT_URL:http://localhost:3000}
 
 app:
   dataset:

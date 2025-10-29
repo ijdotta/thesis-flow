@@ -38,6 +38,7 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/auth/login").permitAll()
+                    .requestMatchers("/auth/professor/**").permitAll()
                     .requestMatchers("/analytics/**").permitAll()
                     .requestMatchers("/projects/public/**").permitAll()
                     .requestMatchers(HttpMethod.PUT, "/projects/*/application-domain", "/projects/*/tags")
