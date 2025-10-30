@@ -12,6 +12,7 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import org.slf4j.LoggerFactory
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 
 @RestController
 @RequestMapping("/projects")
@@ -30,6 +31,7 @@ class ProjectController(
     )
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     fun findAll(
         @RequestParam(required = false, defaultValue = "0") page: Int,
         @RequestParam(required = false, defaultValue = "25") size: Int,
@@ -113,41 +115,50 @@ class ProjectController(
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     fun findById(@PathVariable id: String) = ResponseEntity.ok(projectService.findByPublicId(id))
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     fun create(@RequestBody projectDTO: ProjectDTO) = projectService.create(projectDTO)
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     fun update(@PathVariable id: String, @RequestBody projectDTO: ProjectDTO) =
         projectService.update(id, projectDTO)
 
     @PutMapping("/{id}/tags")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     fun setTags(@PathVariable id: String, @RequestBody setTagsRequest: SetTagsRequest) =
         projectService.setTags(id, setTagsRequest.tagIds)
 
     @PutMapping("/{id}/application-domain")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     fun setApplicationDomain(
         @PathVariable id: String,
         @RequestBody setApplicationDomainRequest: SetApplicationDomainRequest
     ) = projectService.setApplicationDomain(id, setApplicationDomainRequest.applicationDomainId)
 
     @PutMapping("/{id}/participants")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     fun setParticipants(
         @PathVariable id: String,
         @RequestBody setParticipantsRequest: SetParticipantsRequest
     ) = projectService.setParticipants(id, setParticipantsRequest.participants)
 
     @PutMapping("/{id}/completion")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     fun setCompletionDate(
         @PathVariable id: String,
         @RequestBody setCompletionDateRequest: SetCompletionDateRequest
     ) = projectService.setCompletionDate(id, setCompletionDateRequest.completionDate)
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     fun delete(@PathVariable id: String) = projectService.delete(id)
 
     @PostMapping("/bulk-import", consumes = ["multipart/form-data"])
+    @PreAuthorize("hasRole('ADMIN')")
     fun bulkImport(@RequestParam("file") file: MultipartFile): ResponseEntity<*> {
         log.info("Bulk import request received with file: ${file.originalFilename}")
 

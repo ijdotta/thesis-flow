@@ -37,14 +37,39 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
+                    // Public endpoints
                     .requestMatchers("/auth/login").permitAll()
                     .requestMatchers("/auth/professor/**").permitAll()
                     .requestMatchers("/analytics/**").permitAll()
                     .requestMatchers("/projects/public/**").permitAll()
-                    .requestMatchers(HttpMethod.PUT, "/projects/*/application-domain", "/projects/*/tags")
-                    .hasAnyRole("ADMIN", "PROFESSOR")
-                    .requestMatchers(HttpMethod.GET, "/projects/**")
-                    .hasAnyRole("ADMIN", "PROFESSOR")
+
+                    // Read access for domain-related entities (PROFESSOR can read)
+                    .requestMatchers(HttpMethod.GET, "/tags/**").hasAnyRole("ADMIN", "PROFESSOR")
+                    .requestMatchers(HttpMethod.GET, "/careers/**").hasAnyRole("ADMIN", "PROFESSOR")
+                    .requestMatchers(HttpMethod.GET, "/application-domains/**").hasAnyRole("ADMIN", "PROFESSOR")
+                    .requestMatchers(HttpMethod.GET, "/students/**").hasAnyRole("ADMIN", "PROFESSOR")
+
+                    // Write access for tags and domains (ADMIN + PROFESSOR - but filtered at service level)
+                    .requestMatchers(HttpMethod.POST, "/tags").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/tags/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/tags/**").hasRole("ADMIN")
+                    
+                    .requestMatchers(HttpMethod.POST, "/careers").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/careers/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/careers/**").hasRole("ADMIN")
+                    
+                    .requestMatchers(HttpMethod.POST, "/application-domains").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/application-domains/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/application-domains/**").hasRole("ADMIN")
+
+                    // Projects: PROFESSOR can perform ANY operation on projects they direct/co-direct
+                    // (Authorization checked at service level via @PreAuthorize)
+                    .requestMatchers("/projects/**").hasAnyRole("ADMIN", "PROFESSOR")
+
+                    // Backup endpoints - ADMIN only
+                    .requestMatchers("/backup/**").hasRole("ADMIN")
+
+                    // Everything else requires ADMIN
                     .anyRequest().hasRole("ADMIN")
             }
             .userDetailsService(userDetailsService)
