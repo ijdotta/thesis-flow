@@ -64,7 +64,7 @@ class SecurityConfig(
             allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             allowedHeaders = listOf("*")
             exposedHeaders = listOf("Authorization")
-            allowCredentials = false
+            allowCredentials = true
             maxAge = 3600
         }
         return UrlBasedCorsConfigurationSource().apply {
