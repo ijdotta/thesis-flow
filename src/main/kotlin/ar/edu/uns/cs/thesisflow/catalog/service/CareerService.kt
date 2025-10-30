@@ -2,12 +2,14 @@ package ar.edu.uns.cs.thesisflow.catalog.service
 
 import ar.edu.uns.cs.thesisflow.catalog.dto.CareerDTO
 import ar.edu.uns.cs.thesisflow.catalog.dto.toDTO
+import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
 import ar.edu.uns.cs.thesisflow.catalog.persistance.repository.CareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
 import org.springframework.stereotype.Service
 import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
+import org.springframework.data.jpa.domain.Specification
 
 @Service
 class CareerService(
@@ -15,7 +17,9 @@ class CareerService(
     private val studentCareerRepository: StudentCareerRepository,
 ) {
     fun findAll(pageable: Pageable): Page<CareerDTO> = careerRepository.findAll(pageable).map { it.toDTO() }
-
+    
+    fun findAll(pageable: Pageable, filter: CareerFilter, specification: Specification<Career>): Page<CareerDTO> =
+        careerRepository.findAll(specification, pageable).map { it.toDTO() }
 
     fun findByPublicId(publicId: String) = findEntityByPublicId(publicId).toDTO()
 

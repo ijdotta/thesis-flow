@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
+import org.springframework.data.jpa.domain.Specification
 import java.util.*
 
 @Service
@@ -25,6 +26,9 @@ class StudentService(
     private val studentCareerRepository: StudentCareerRepository,
 ) {
     fun findAll(pageable: Pageable): Page<StudentDTO> = studentRepository.findAll(pageable).map { it.withCareers() }
+    
+    fun findAll(pageable: Pageable, filter: StudentFilter, specification: Specification<Student>): Page<StudentDTO> =
+        studentRepository.findAll(specification, pageable).map { it.withCareers() }
 
     fun findByPublicId(publicId: String) = findEntityByPublicId(UUID.fromString(publicId)).withCareers()
 

@@ -4,9 +4,11 @@ import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Student
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.jpa.domain.Specification
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import java.util.UUID
 
-interface StudentRepository: JpaRepository<Student, Long> {
+interface StudentRepository: JpaRepository<Student, Long>, JpaSpecificationExecutor<Student> {
     fun findByPublicId(publicId: UUID): Student?
     fun findFirstByPerson(person: Person): Student?
     @Query("""
