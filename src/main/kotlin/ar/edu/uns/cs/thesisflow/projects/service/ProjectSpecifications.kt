@@ -17,13 +17,15 @@ enum class NullabilityFilter { NULL, NOT_NULL }
 data class ProjectFilter(
     val title: String? = null,
     val professorName: String? = null,
+    val professorPublicId: String? = null, // Filter by professor public ID
     val studentName: String? = null,
-    val domain: String? = null,
+    val domain: String? = null, // Application domain
+    val career: String? = null, // Academic career (different from domain!)
     val completion: NullabilityFilter? = null, // derived from completed=true/false
     val type: String? = null, // project type enum name
 ) {
     companion object { fun empty() = ProjectFilter() }
-    val isEmpty: Boolean get() = listOf(title, professorName, studentName, domain, completion, type).all { it == null }
+    val isEmpty: Boolean get() = listOf(title, professorName, professorPublicId, studentName, domain, career, completion, type).all { it == null }
 }
 
 object ProjectSpecifications {
@@ -54,6 +56,12 @@ object ProjectSpecifications {
             filter.domain?.takeIf { it.isNotBlank() }?.let { d ->
                 val joinDomain = root.join<Project, Any>("applicationDomain", JoinType.LEFT)
                 predicates += cb.like(cb.lower(joinDomain.get("name")), "%${d.lowercase()}%")
+            }
+
+            // Career name LIKE (join via applicationDomain -> career or direct)
+            filter.career?.takeIf { it.isNotBlank() }?.let { c ->
+                val joinCareer = root.join<Project, Any>("career", JoinType.LEFT)
+                predicates += cb.like(cb.lower(joinCareer.get("name")), "%${c.lowercase()}%")
             }
 
             // Completion nullability
@@ -92,6 +100,22 @@ object ProjectSpecifications {
                         )
                         predicates += cb.exists(sub)
                     }
+                }
+            }
+
+            // Professor (director / co-director) by public ID via EXISTS subquery
+            filter.professorPublicId?.takeIf { it.isNotBlank() }?.let { profPublicId ->
+                val sub = query?.subquery(Long::class.java)
+                if (sub != null) {
+                    val pp = sub.from(ProjectParticipant::class.java)
+                    val person = pp.join<ProjectParticipant, Person>("person", JoinType.LEFT)
+                    val prof = person.join<Person, Any>("professor", JoinType.LEFT)
+                    sub.select(cb.literal(1L)).where(
+                        cb.equal(pp.get<Project>("project"), root),
+                        pp.get<ParticipantRole>("participantRole").`in`(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR),
+                        cb.equal(prof.get<String>("publicId"), profPublicId)
+                    )
+                    predicates += cb.exists(sub)
                 }
             }
 
