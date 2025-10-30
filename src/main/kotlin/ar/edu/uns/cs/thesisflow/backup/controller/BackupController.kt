@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/backup")
+@RequestMapping("/backup")
 class BackupController(private val backupService: BackupService) {
 
     @GetMapping("/create")
