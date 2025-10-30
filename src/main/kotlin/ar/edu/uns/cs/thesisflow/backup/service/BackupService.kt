@@ -21,20 +21,54 @@ class BackupService(
     private val objectMapper: ObjectMapper,
 ) {
 
+    companion object {
+        private const val TABLE_CAREER = "career"
+        private const val TABLE_PERSON = "person"
+        private const val TABLE_PROFESSOR = "professor"
+        private const val TABLE_STUDENT = "student"
+        private const val TABLE_STUDENT_CAREER = "student_career"
+        private const val TABLE_AUTH_USER = "auth_user"
+        private const val TABLE_PROFESSOR_LOGIN_TOKEN = "professor_login_token"
+        private const val TABLE_APPLICATION_DOMAIN = "application_domain"
+        private const val TABLE_TAG = "tag"
+        private const val TABLE_PROJECT = "project"
+        private const val TABLE_PROJECT_PARTICIPANT = "project_participant"
+
+        private val TABLE_CONFIGS = listOf(
+            TableConfig(TABLE_CAREER, Career::class.java),
+            TableConfig(TABLE_PERSON, Person::class.java),
+            TableConfig(TABLE_PROFESSOR, Professor::class.java),
+            TableConfig(TABLE_STUDENT, Student::class.java),
+            TableConfig(TABLE_STUDENT_CAREER, StudentCareer::class.java),
+            TableConfig(TABLE_AUTH_USER, AuthUser::class.java),
+            TableConfig(TABLE_PROFESSOR_LOGIN_TOKEN, ProfessorLoginToken::class.java),
+            TableConfig(TABLE_APPLICATION_DOMAIN, ApplicationDomain::class.java),
+            TableConfig(TABLE_TAG, Tag::class.java),
+            TableConfig(TABLE_PROJECT, Project::class.java),
+            TableConfig(TABLE_PROJECT_PARTICIPANT, ProjectParticipant::class.java),
+        )
+
+        private val DELETE_ORDER = listOf(
+            TABLE_PROJECT_PARTICIPANT,
+            TABLE_PROJECT,
+            TABLE_TAG,
+            TABLE_APPLICATION_DOMAIN,
+            TABLE_PROFESSOR_LOGIN_TOKEN,
+            TABLE_AUTH_USER,
+            TABLE_STUDENT_CAREER,
+            TABLE_STUDENT,
+            TABLE_PROFESSOR,
+            TABLE_PERSON,
+            TABLE_CAREER,
+        )
+    }
+
     fun createBackup(): String {
         val backup = mutableMapOf<String, List<Any>>()
 
-        backup["career"] = getAllEntitiesByType(Career::class.java)
-        backup["person"] = getAllEntitiesByType(Person::class.java)
-        backup["professor"] = getAllEntitiesByType(Professor::class.java)
-        backup["student"] = getAllEntitiesByType(Student::class.java)
-        backup["student_career"] = getAllEntitiesByType(StudentCareer::class.java)
-        backup["auth_user"] = getAllEntitiesByType(AuthUser::class.java)
-        backup["professor_login_token"] = getAllEntitiesByType(ProfessorLoginToken::class.java)
-        backup["application_domain"] = getAllEntitiesByType(ApplicationDomain::class.java)
-        backup["tag"] = getAllEntitiesByType(Tag::class.java)
-        backup["project"] = getAllEntitiesByType(Project::class.java)
-        backup["project_participant"] = getAllEntitiesByType(ProjectParticipant::class.java)
+        for (config in TABLE_CONFIGS) {
+            backup[config.tableName] = getAllEntitiesByType(config.entityClass)
+        }
 
         return objectMapper.writerWithDefaultPrettyPrinter()
             .writeValueAsString(backup)
@@ -45,21 +79,11 @@ class BackupService(
         val backup = objectMapper.readValue(backupJson, Map::class.java) as Map<String, Any>
 
         try {
-            // Clear all data first (in reverse dependency order)
             clearAllData()
 
-            // Restore in order of dependencies
-            restoreTable(backup, "career", Career::class.java)
-            restoreTable(backup, "person", Person::class.java)
-            restoreTable(backup, "professor", Professor::class.java)
-            restoreTable(backup, "student", Student::class.java)
-            restoreTable(backup, "student_career", StudentCareer::class.java)
-            restoreTable(backup, "auth_user", AuthUser::class.java)
-            restoreTable(backup, "professor_login_token", ProfessorLoginToken::class.java)
-            restoreTable(backup, "application_domain", ApplicationDomain::class.java)
-            restoreTable(backup, "tag", Tag::class.java)
-            restoreTable(backup, "project", Project::class.java)
-            restoreTable(backup, "project_participant", ProjectParticipant::class.java)
+            for (config in TABLE_CONFIGS) {
+                restoreTable(backup, config.tableName, config.entityClass)
+            }
 
             entityManager.flush()
         } catch (e: Exception) {
@@ -83,20 +107,14 @@ class BackupService(
     }
 
     private fun clearAllData() {
-        // Clear in reverse dependency order
-        entityManager.createNativeQuery("DELETE FROM project_participant").executeUpdate()
-        entityManager.createNativeQuery("DELETE FROM project").executeUpdate()
-        entityManager.createNativeQuery("DELETE FROM tag").executeUpdate()
-        entityManager.createNativeQuery("DELETE FROM application_domain").executeUpdate()
-        entityManager.createNativeQuery("DELETE FROM professor_login_token").executeUpdate()
-        entityManager.createNativeQuery("DELETE FROM auth_user").executeUpdate()
-        entityManager.createNativeQuery("DELETE FROM student_career").executeUpdate()
-        entityManager.createNativeQuery("DELETE FROM student").executeUpdate()
-        entityManager.createNativeQuery("DELETE FROM professor").executeUpdate()
-        entityManager.createNativeQuery("DELETE FROM person").executeUpdate()
-        entityManager.createNativeQuery("DELETE FROM career").executeUpdate()
+        for (tableName in DELETE_ORDER) {
+            entityManager.createNativeQuery("DELETE FROM $tableName").executeUpdate()
+        }
         entityManager.flush()
     }
 }
 
+private data class TableConfig(val tableName: String, val entityClass: Class<*>)
+
 class RestoreException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+
