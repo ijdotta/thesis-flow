@@ -37,25 +37,36 @@ class ProjectController(
         @RequestParam(required = false, defaultValue = "25") size: Int,
         @RequestParam(required = false) title: String?,
         @RequestParam(name = "professor.name", required = false) professorName: String?,
+        @RequestParam(name = "professor.id", required = false) professorPublicId: String?, // Filter by professor public ID
         @RequestParam(required = false) directors: String?, // alias for professorName
         @RequestParam(name = "student.name", required = false) studentName: String?,
         @RequestParam(required = false) students: String?, // alias for studentName
-        @RequestParam(required = false) domain: String?,
-        @RequestParam(required = false) completed: Boolean?, // legacy alias
-        @RequestParam(required = false) completion: Boolean?, // preferred param (true -> completion NOT NULL)
+        @RequestParam(required = false) domain: String?, // Application domain
+        @RequestParam(required = false) career: String?, // Career (different from domain!)
+        @RequestParam(required = false) completed: String?, // legacy alias (can be string "true"/"false")
+        @RequestParam(required = false) completion: String?, // preferred param (can be string "true"/"false")
         @RequestParam(required = false) type: String?, // project type filter (supports synonyms & comma-separated)
         @RequestParam(required = false) sort: String?, // e.g. createdAt,desc OR students,asc (pseudo)
     ): ResponseEntity<*> {
         val effectiveProfessor = (directors ?: professorName)?.takeIf { it.isNotBlank() }
+        val effectiveProfessorId = professorPublicId?.takeIf { it.isNotBlank() }
         val effectiveStudent = (students ?: studentName)?.takeIf { it.isNotBlank() }
-        val completionFlag = completion ?: completed // prefer 'completion'
+        val effectiveDomain = domain?.takeIf { it.isNotBlank() }
+        val effectiveCareer = career?.takeIf { it.isNotBlank() }
+        
+        // Convert string completion values ("true"/"false") to boolean
+        val completionFlag = when {
+            completion != null -> completion.toStringBoolean()
+            completed != null -> completed.toStringBoolean()
+            else -> null
+        }
         val normalizedType = normalizeTypeParam(type)
 
         val filter = ProjectFilter(
             title = title?.takeIf { it.isNotBlank() },
             professorName = effectiveProfessor,
             studentName = effectiveStudent,
-            domain = domain?.takeIf { it.isNotBlank() },
+            domain = effectiveDomain,
             completion = completionFlag.toNullabilityFilter(),
             type = normalizedType,
         )
@@ -63,11 +74,20 @@ class ProjectController(
         val pageable = PageRequest.of(page, size, sort.toSort())
 
         log.debug(
-            "Project filter request -> page={}, size={}, title='{}', directors='{}', students='{}', domain='{}', completionFlag={}, typeRaw='{}', typeNormalized='{}', sort='{}'",
-            page, size, title, effectiveProfessor, effectiveStudent, domain, completionFlag, type, normalizedType, sort
+            "Project filter request -> page={}, size={}, title='{}', directorName='{}', directorId='{}', students='{}', domain='{}', career='{}', completionFlag={}, typeRaw='{}', typeNormalized='{}', sort='{}'",
+            page, size, title, effectiveProfessor, effectiveProfessorId, effectiveStudent, effectiveDomain, effectiveCareer, completionFlag, type, normalizedType, sort
         )
 
         return ResponseEntity.ok(projectService.findAll(pageable, filter))
+    }
+
+    private fun String?.toStringBoolean(): Boolean? {
+        return when {
+            this.isNullOrBlank() -> null
+            this.equals("true", ignoreCase = true) -> true
+            this.equals("false", ignoreCase = true) -> false
+            else -> null
+        }
     }
 
     private fun String?.toSort(): Sort {
