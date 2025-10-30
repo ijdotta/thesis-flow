@@ -65,8 +65,10 @@ class ProjectController(
         val filter = ProjectFilter(
             title = title?.takeIf { it.isNotBlank() },
             professorName = effectiveProfessor,
+            professorPublicId = effectiveProfessorId,
             studentName = effectiveStudent,
             domain = effectiveDomain,
+            career = effectiveCareer,
             completion = completionFlag.toNullabilityFilter(),
             type = normalizedType,
         )
