@@ -7,6 +7,7 @@ import ar.edu.uns.cs.thesisflow.auth.model.AuthUserPrincipal
 import ar.edu.uns.cs.thesisflow.auth.model.UserRole
 import ar.edu.uns.cs.thesisflow.auth.persistance.entity.ProfessorLoginToken
 import ar.edu.uns.cs.thesisflow.auth.persistance.repository.ProfessorLoginTokenRepository
+import ar.edu.uns.cs.thesisflow.auth.repository.AuthUserRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -24,6 +25,7 @@ data class RateLimitEntry(
 class ProfessorAuthService(
     private val professorRepository: ProfessorRepository,
     private val professorLoginTokenRepository: ProfessorLoginTokenRepository,
+    private val authUserRepository: AuthUserRepository,
     private val jwtService: JwtService,
     private val emailService: EmailService,
     @Value("\${professor-auth.token-expiry-minutes:15}")
@@ -85,14 +87,20 @@ class ProfessorAuthService(
         professorLoginTokenRepository.save(loginToken)
 
         val professor = loginToken.professor
-        val dummyAuthUser = AuthUser(
-            username = professor.email,
-            password = "",
-            role = UserRole.PROFESSOR,
-            professor = professor
-        )
         
-        val principal = AuthUserPrincipal.from(dummyAuthUser)
+        // Ensure AuthUser exists for this professor
+        var authUser = authUserRepository.findByUsername(professor.email).orElse(null)
+        if (authUser == null) {
+            authUser = AuthUser(
+                username = professor.email,
+                password = "",
+                role = UserRole.PROFESSOR,
+                professor = professor
+            )
+            authUser = authUserRepository.save(authUser)
+        }
+        
+        val principal = AuthUserPrincipal.from(authUser)
         val jwtToken = jwtService.generateToken(principal)
 
         return VerifyProfessorLoginLinkResponse(
