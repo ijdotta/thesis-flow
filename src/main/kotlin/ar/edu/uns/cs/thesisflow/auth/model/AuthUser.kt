@@ -25,7 +25,7 @@ class AuthUser(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     var role: UserRole,
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "professor_id")
     var professor: Professor? = null,
 ) : BaseEntity()
