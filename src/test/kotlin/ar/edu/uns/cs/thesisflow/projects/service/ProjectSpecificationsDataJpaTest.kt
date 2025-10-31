@@ -126,7 +126,7 @@ class ProjectSpecificationsDataJpaTest @Autowired constructor(
 
     @Test
     fun `filters by professor public ID returns projects directed or co-directed by that professor`() {
-        val filter = ProjectFilter(professorPublicId = professor.publicId.toString())
+        val filter = ProjectFilter(professorPublicId = professor.publicId)
         val page = projectRepository.findAll(ProjectSpecifications.withFilter(filter), PageRequest.of(0,10))
         assertThat(page.totalElements).isEqualTo(2) // Both projectCompleted and projectInProgress
         val titles = page.content.map { it.title }.toSet()
@@ -135,7 +135,7 @@ class ProjectSpecificationsDataJpaTest @Autowired constructor(
 
     @Test
     fun `filters by professor public ID returns nothing for non-existent professor`() {
-        val filter = ProjectFilter(professorPublicId = UUID.randomUUID().toString())
+        val filter = ProjectFilter(professorPublicId = UUID.randomUUID())
         val page = projectRepository.findAll(ProjectSpecifications.withFilter(filter), PageRequest.of(0,10))
         assertThat(page.totalElements).isEqualTo(0)
     }
@@ -155,7 +155,7 @@ class ProjectSpecificationsDataJpaTest @Autowired constructor(
     fun `combines professor ID and career filters`() {
         // Professor is only in projects with first career, not differentCareer
         val filter = ProjectFilter(
-            professorPublicId = professor.publicId.toString(),
+            professorPublicId = professor.publicId,
             career = differentCareer.name
         )
         val page = projectRepository.findAll(ProjectSpecifications.withFilter(filter), PageRequest.of(0,10))
