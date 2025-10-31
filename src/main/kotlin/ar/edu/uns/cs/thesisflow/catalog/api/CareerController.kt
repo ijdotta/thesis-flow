@@ -2,6 +2,8 @@ package ar.edu.uns.cs.thesisflow.catalog.api
 
 import ar.edu.uns.cs.thesisflow.catalog.dto.CareerDTO
 import ar.edu.uns.cs.thesisflow.catalog.service.CareerService
+import ar.edu.uns.cs.thesisflow.catalog.service.CareerFilter
+import ar.edu.uns.cs.thesisflow.catalog.service.CareerSpecifications
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -23,7 +25,13 @@ class CareerController(
     fun findAll(
         @RequestParam(required = false, defaultValue = "0") page: Int,
         @RequestParam(required = false, defaultValue = "25") size: Int,
-    ) = ResponseEntity.ok(careerService.findAll(PageRequest.of(page, size)))
+        @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) sort: String?,
+    ) = ResponseEntity.ok(careerService.findAll(
+        PageRequest.of(page, size),
+        CareerFilter(name = name?.takeIf { it.isNotBlank() }),
+        CareerSpecifications.withFilter(CareerFilter(name = name?.takeIf { it.isNotBlank() }))
+    ))
 
     @GetMapping("/{publicId}")
     fun findById(@PathVariable publicId: String) = careerService.findByPublicId(publicId)

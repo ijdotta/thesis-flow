@@ -2,12 +2,14 @@ package ar.edu.uns.cs.thesisflow.projects.service
 
 import ar.edu.uns.cs.thesisflow.projects.dto.ApplicationDomainDTO
 import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ApplicationDomain
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ApplicationDomainRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import org.springframework.stereotype.Service
 import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
+import org.springframework.data.jpa.domain.Specification
 
 @Service
 class ApplicationDomainService(
@@ -15,6 +17,9 @@ class ApplicationDomainService(
     private val projectRepository: ProjectRepository
 ) {
     fun findAll(pageable: Pageable): Page<ApplicationDomainDTO> = repository.findAll(pageable).map { it.toDTO() }
+    
+    fun findAll(pageable: Pageable, filter: ApplicationDomainFilter, specification: Specification<ApplicationDomain>): Page<ApplicationDomainDTO> =
+        repository.findAll(specification, pageable).map { it.toDTO() }
 
     fun findByPublicId(publicId: String) = findEntityByPublicId(publicId).toDTO()
 

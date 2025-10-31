@@ -2,6 +2,8 @@ package ar.edu.uns.cs.thesisflow.projects.api
 
 import ar.edu.uns.cs.thesisflow.projects.dto.TagDTO
 import ar.edu.uns.cs.thesisflow.projects.service.TagService
+import ar.edu.uns.cs.thesisflow.projects.service.TagFilter
+import ar.edu.uns.cs.thesisflow.projects.service.TagSpecifications
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -23,7 +25,22 @@ class TagController(
     fun findAll(
         @RequestParam(required = false, defaultValue = "0") page: Int,
         @RequestParam(required = false, defaultValue = "25") size: Int,
-    ) = ResponseEntity.ok(tagService.findAll(PageRequest.of(page, size)))
+        @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) description: String?,
+        @RequestParam(required = false) sort: String?,
+    ) = ResponseEntity.ok(tagService.findAll(
+        PageRequest.of(page, size),
+        TagFilter(
+            name = name?.takeIf { it.isNotBlank() },
+            description = description?.takeIf { it.isNotBlank() }
+        ),
+        TagSpecifications.withFilter(
+            TagFilter(
+                name = name?.takeIf { it.isNotBlank() },
+                description = description?.takeIf { it.isNotBlank() }
+            )
+        )
+    ))
 
     @GetMapping("/{publicId}")
     fun findByPublicId(@PathVariable publicId: String) =

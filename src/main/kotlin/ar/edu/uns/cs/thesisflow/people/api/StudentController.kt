@@ -2,6 +2,8 @@ package ar.edu.uns.cs.thesisflow.people.api
 
 import ar.edu.uns.cs.thesisflow.people.dto.StudentDTO
 import ar.edu.uns.cs.thesisflow.people.service.StudentService
+import ar.edu.uns.cs.thesisflow.people.service.StudentFilter
+import ar.edu.uns.cs.thesisflow.people.service.StudentSpecifications
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -16,8 +18,21 @@ class StudentController(
     fun findAll(
         @RequestParam(required = false, defaultValue = "0") page: Int,
         @RequestParam(required = false, defaultValue = "25") size: Int,
-    ) = ResponseEntity
-        .ok(studentService.findAll(PageRequest.of(page, size)))
+        @RequestParam(required = false) lastname: String?,
+        @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) studentId: String?,
+        @RequestParam(required = false) email: String?,
+        @RequestParam(required = false) sort: String?,
+    ): ResponseEntity<*> {
+        val filter = StudentFilter(
+            lastname = lastname?.takeIf { it.isNotBlank() },
+            name = name?.takeIf { it.isNotBlank() },
+            studentId = studentId?.takeIf { it.isNotBlank() },
+            email = email?.takeIf { it.isNotBlank() },
+        )
+        val pageable = PageRequest.of(page, size)
+        return ResponseEntity.ok(studentService.findAll(pageable, filter, StudentSpecifications.withFilter(filter)))
+    }
 
     @GetMapping("/{publicId}")
     fun findByPublicId(@PathVariable publicId: String) = ResponseEntity

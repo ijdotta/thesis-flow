@@ -2,6 +2,8 @@ package ar.edu.uns.cs.thesisflow.people.api
 
 import ar.edu.uns.cs.thesisflow.people.dto.ProfessorDTO
 import ar.edu.uns.cs.thesisflow.people.service.ProfessorService
+import ar.edu.uns.cs.thesisflow.people.service.ProfessorFilter
+import ar.edu.uns.cs.thesisflow.people.service.ProfessorSpecifications
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -22,7 +24,19 @@ class ProfessorController(
     fun findAll(
         @RequestParam(required = false, defaultValue = "0") page: Int,
         @RequestParam(required = false, defaultValue = "25") size: Int,
-    ) = ResponseEntity.ok(professorService.findAll(PageRequest.of(page, size)))
+        @RequestParam(required = false) lastname: String?,
+        @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) email: String?,
+        @RequestParam(required = false) sort: String?,
+    ): ResponseEntity<*> {
+        val filter = ProfessorFilter(
+            lastname = lastname?.takeIf { it.isNotBlank() },
+            name = name?.takeIf { it.isNotBlank() },
+            email = email?.takeIf { it.isNotBlank() },
+        )
+        val pageable = PageRequest.of(page, size)
+        return ResponseEntity.ok(professorService.findAll(pageable, filter, ProfessorSpecifications.withFilter(filter)))
+    }
 
     @GetMapping("/{publicId}")
     fun findById(@PathVariable publicId: String) = ResponseEntity
