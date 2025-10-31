@@ -1,6 +1,7 @@
 package ar.edu.uns.cs.thesisflow.projects.service
 
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
+import ar.edu.uns.cs.thesisflow.people.persistance.entity.Professor
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectParticipant
@@ -10,6 +11,7 @@ import jakarta.persistence.criteria.Predicate
 import jakarta.persistence.criteria.Path
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDate
+import java.util.UUID
 
 /** Represents nullability filter for certain date fields */
 enum class NullabilityFilter { NULL, NOT_NULL }
@@ -17,7 +19,7 @@ enum class NullabilityFilter { NULL, NOT_NULL }
 data class ProjectFilter(
     val title: String? = null,
     val professorName: String? = null,
-    val professorPublicId: String? = null, // Filter by professor public ID
+    val professorPublicId: UUID? = null, // Filter by professor public ID
     val studentName: String? = null,
     val domain: String? = null, // Application domain
     val career: String? = null, // Academic career (different from domain!)
@@ -25,7 +27,15 @@ data class ProjectFilter(
     val type: String? = null, // project type enum name
 ) {
     companion object { fun empty() = ProjectFilter() }
-    val isEmpty: Boolean get() = listOf(title, professorName, professorPublicId, studentName, domain, career, completion, type).all { it == null }
+    val isEmpty: Boolean
+        get() = title == null &&
+            professorName == null &&
+            professorPublicId == null &&
+            studentName == null &&
+            domain == null &&
+            career == null &&
+            completion == null &&
+            type == null
 }
 
 object ProjectSpecifications {
@@ -104,23 +114,18 @@ object ProjectSpecifications {
             }
 
             // Professor (director / co-director) by public ID via EXISTS subquery
-            filter.professorPublicId?.takeIf { it.isNotBlank() }?.let { profPublicId ->
+            filter.professorPublicId?.let { professorUuid ->
                 val sub = query?.subquery(Long::class.java)
                 if (sub != null) {
-                    try {
-                        val profUuid = java.util.UUID.fromString(profPublicId)
-                        val pp = sub.from(ProjectParticipant::class.java)
-                        val person = pp.join<ProjectParticipant, Person>("person", JoinType.LEFT)
-                        val prof = person.join<Person, Any>("professor", JoinType.LEFT)
-                        sub.select(cb.literal(1L)).where(
-                            cb.equal(pp.get<Project>("project"), root),
-                            pp.get<ParticipantRole>("participantRole").`in`(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR),
-                            cb.equal(prof.get<java.util.UUID>("publicId"), profUuid)
-                        )
-                        predicates += cb.exists(sub)
-                    } catch (e: IllegalArgumentException) {
-                        // Invalid UUID format - silently skip this filter
-                    }
+                    val pp = sub.from(ProjectParticipant::class.java)
+                    val professor = sub.from(Professor::class.java)
+                    sub.select(cb.literal(1L)).where(
+                        cb.equal(pp.get<Project>("project"), root),
+                        pp.get<ParticipantRole>("participantRole").`in`(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR),
+                        cb.equal(professor.get<Person>("person"), pp.get<Person>("person")),
+                        cb.equal(professor.get<UUID>("publicId"), professorUuid)
+                    )
+                    predicates += cb.exists(sub)
                 }
             }
 

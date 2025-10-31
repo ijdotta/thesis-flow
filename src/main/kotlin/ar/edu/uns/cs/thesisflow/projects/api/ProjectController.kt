@@ -1,18 +1,19 @@
 package ar.edu.uns.cs.thesisflow.projects.api
 
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
-import ar.edu.uns.cs.thesisflow.projects.service.ProjectService
-import org.springframework.data.domain.PageRequest
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
 import ar.edu.uns.cs.thesisflow.projects.service.ProjectFilter
 import ar.edu.uns.cs.thesisflow.projects.service.NullabilityFilter
+import ar.edu.uns.cs.thesisflow.projects.service.ProjectService
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import org.slf4j.LoggerFactory
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
+import java.util.UUID
 
 @RestController
 @RequestMapping("/projects")
@@ -37,6 +38,7 @@ class ProjectController(
         @RequestParam(required = false, defaultValue = "25") size: Int,
         @RequestParam(required = false) title: String?,
         @RequestParam(name = "professor.name", required = false) professorName: String?,
+        @RequestParam(required = false) professorId: String?, // Preferred filter key (UUID)
         @RequestParam(name = "professor.id", required = false) professorPublicId: String?, // Filter by professor public ID
         @RequestParam(required = false) directors: String?, // alias for professorName
         @RequestParam(name = "student.name", required = false) studentName: String?,
@@ -49,10 +51,17 @@ class ProjectController(
         @RequestParam(required = false) sort: String?, // e.g. createdAt,desc OR students,asc (pseudo)
     ): ResponseEntity<*> {
         val effectiveProfessor = (directors ?: professorName)?.takeIf { it.isNotBlank() }
-        val effectiveProfessorId = professorPublicId?.takeIf { it.isNotBlank() }
+        val effectiveProfessorId = listOf(professorId, professorPublicId)
+            .firstOrNull { !it.isNullOrBlank() }
+            ?.trim()
         val effectiveStudent = (students ?: studentName)?.takeIf { it.isNotBlank() }
         val effectiveDomain = domain?.takeIf { it.isNotBlank() }
         val effectiveCareer = career?.takeIf { it.isNotBlank() }
+        val professorFilterUuid = effectiveProfessorId?.let { raw ->
+            runCatching { UUID.fromString(raw) }
+                .onFailure { log.warn("Ignoring invalid professorId '{}'", raw) }
+                .getOrNull()
+        }
         
         // Convert string completion values ("true"/"false") to boolean
         val completionFlag = when {
@@ -65,7 +74,7 @@ class ProjectController(
         val filter = ProjectFilter(
             title = title?.takeIf { it.isNotBlank() },
             professorName = effectiveProfessor,
-            professorPublicId = effectiveProfessorId,
+            professorPublicId = professorFilterUuid,
             studentName = effectiveStudent,
             domain = effectiveDomain,
             career = effectiveCareer,
@@ -77,7 +86,7 @@ class ProjectController(
 
         log.debug(
             "Project filter request -> page={}, size={}, title='{}', directorName='{}', directorId='{}', students='{}', domain='{}', career='{}', completionFlag={}, typeRaw='{}', typeNormalized='{}', sort='{}'",
-            page, size, title, effectiveProfessor, effectiveProfessorId, effectiveStudent, effectiveDomain, effectiveCareer, completionFlag, type, normalizedType, sort
+            page, size, title, effectiveProfessor, professorFilterUuid, effectiveStudent, effectiveDomain, effectiveCareer, completionFlag, type, normalizedType, sort
         )
 
         return ResponseEntity.ok(projectService.findAll(pageable, filter))
