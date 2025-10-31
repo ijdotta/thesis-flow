@@ -107,15 +107,20 @@ object ProjectSpecifications {
             filter.professorPublicId?.takeIf { it.isNotBlank() }?.let { profPublicId ->
                 val sub = query?.subquery(Long::class.java)
                 if (sub != null) {
-                    val pp = sub.from(ProjectParticipant::class.java)
-                    val person = pp.join<ProjectParticipant, Person>("person", JoinType.LEFT)
-                    val prof = person.join<Person, Any>("professor", JoinType.LEFT)
-                    sub.select(cb.literal(1L)).where(
-                        cb.equal(pp.get<Project>("project"), root),
-                        pp.get<ParticipantRole>("participantRole").`in`(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR),
-                        cb.equal(prof.get<String>("publicId"), profPublicId)
-                    )
-                    predicates += cb.exists(sub)
+                    try {
+                        val profUuid = java.util.UUID.fromString(profPublicId)
+                        val pp = sub.from(ProjectParticipant::class.java)
+                        val person = pp.join<ProjectParticipant, Person>("person", JoinType.LEFT)
+                        val prof = person.join<Person, Any>("professor", JoinType.LEFT)
+                        sub.select(cb.literal(1L)).where(
+                            cb.equal(pp.get<Project>("project"), root),
+                            pp.get<ParticipantRole>("participantRole").`in`(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR),
+                            cb.equal(prof.get<java.util.UUID>("publicId"), profUuid)
+                        )
+                        predicates += cb.exists(sub)
+                    } catch (e: IllegalArgumentException) {
+                        // Invalid UUID format - silently skip this filter
+                    }
                 }
             }
 
