@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
+import org.springframework.data.jpa.domain.Specification
 
 @Service
 class PersonService(
@@ -19,7 +20,11 @@ class PersonService(
     private val professorRepository: ProfessorRepository,
     private val projectParticipantRepository: ProjectParticipantRepository,
 ) {
-    fun findAll(pageable: Pageable): Page<PersonDTO> = personRepository.findAll(pageable).map { it.toDTO() }
+    fun findAll(pageable: Pageable): Page<PersonDTO> =
+        findAll(pageable, PersonFilter.empty(), PersonSpecifications.withFilter(PersonFilter.empty()))
+
+    fun findAll(pageable: Pageable, filter: PersonFilter, specification: Specification<Person>): Page<PersonDTO> =
+        personRepository.findAll(specification, pageable).map { it.toDTO() }
 
     fun findByPublicId(publicId: String?) = findPersonByPublicId(publicId).toDTO()
 
