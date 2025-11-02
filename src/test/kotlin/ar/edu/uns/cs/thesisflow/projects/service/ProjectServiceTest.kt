@@ -88,7 +88,7 @@ class ProjectServiceTest @Autowired constructor(
         val project = Project(
             title = "Filtered Project",
             type = ProjectType.THESIS,
-            subType = mutableSetOf(ProjectSubType.TYPE_1)
+            subType = mutableSetOf(ProjectSubType.INVESTIGACION)
         )
         project.career = defaultCareer
         projectRepository.save(project)
@@ -99,7 +99,7 @@ class ProjectServiceTest @Autowired constructor(
 
     @Test
     fun `setTags replaces tags`() {
-        val project = Project(title = "Taggy", type = ProjectType.THESIS, subType = mutableSetOf(ProjectSubType.TYPE_1))
+        val project = Project(title = "Taggy", type = ProjectType.THESIS, subType = mutableSetOf(ProjectSubType.INVESTIGACION))
         project.career = defaultCareer
         projectRepository.save(project)
         val tag = tagRepository.save(Tag(name = "Kotlin"))
@@ -113,12 +113,12 @@ class ProjectServiceTest @Autowired constructor(
         val dto = ProjectDTO(
             title = "New",
             type = ProjectType.THESIS.name,
-            subtype = listOf(ProjectSubType.TYPE_1.name),
+            subtype = listOf(ProjectSubType.INVESTIGACION.name),
             initialSubmission = LocalDate.now(),
             careerPublicId = defaultCareer.publicId.toString()
         )
         val created = projectService.create(dto)
         assertThat(created.title).isEqualTo("New")
-        assertThat(created.subtype).contains(ProjectSubType.TYPE_1.name)
+        assertThat(created.subtype).contains(ProjectSubType.INVESTIGACION.name)
     }
 }

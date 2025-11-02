@@ -144,7 +144,7 @@ class ProjectServiceIntegrationTest(
     private fun getProjectDTO() = ProjectDTO(
         title = "title",
         type = ProjectType.FINAL_PROJECT.name,
-        subtype = listOf(ProjectSubType.TYPE_1.name),
+        subtype = listOf(ProjectSubType.INVESTIGACION.name),
         initialSubmission = LocalDate.now(),
     )
 }

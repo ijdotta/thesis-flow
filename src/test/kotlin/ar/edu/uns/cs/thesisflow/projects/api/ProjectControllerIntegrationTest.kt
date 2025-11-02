@@ -57,7 +57,7 @@ class ProjectControllerIntegrationTest @Autowired constructor(
             Project(
                 title = "Consensus Algorithms",
                 type = ProjectType.THESIS,
-                subType = mutableSetOf(ProjectSubType.TYPE_1),
+                subType = mutableSetOf(ProjectSubType.INVESTIGACION),
                 applicationDomain = domain,
                 completion = LocalDate.now(),
                 career = career
@@ -67,7 +67,7 @@ class ProjectControllerIntegrationTest @Autowired constructor(
             Project(
                 title = "Event Sourcing Platform",
                 type = ProjectType.THESIS,
-                subType = mutableSetOf(ProjectSubType.TYPE_1),
+                subType = mutableSetOf(ProjectSubType.INVESTIGACION),
                 applicationDomain = domain,
                 completion = null,
                 career = career

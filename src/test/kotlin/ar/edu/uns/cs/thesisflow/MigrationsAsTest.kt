@@ -96,7 +96,7 @@ class MigrationsAsTest(
             ProjectDTO(
                 title = "Sistema de Gestión y Visualización de Trabajos Finales de Carrera para el DCIC",
                 type = ProjectType.FINAL_PROJECT.name,
-                subtype = listOf(ProjectSubType.TYPE_1.name),
+                subtype = listOf(ProjectSubType.INVESTIGACION.name),
                 initialSubmission = LocalDate.now()
             )
         )
