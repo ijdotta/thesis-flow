@@ -83,7 +83,7 @@ class ProjectResourcesTest @Autowired constructor(
         project = Project(
             title = "Test Project",
             type = ProjectType.THESIS,
-            subType = mutableSetOf(ProjectSubType.TYPE_1),
+            subType = mutableSetOf(ProjectSubType.INVESTIGACION),
             initialSubmission = LocalDate.now(),
             career = career
         )

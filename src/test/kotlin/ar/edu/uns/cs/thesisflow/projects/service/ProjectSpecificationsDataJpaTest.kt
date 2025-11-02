@@ -45,7 +45,7 @@ class ProjectSpecificationsDataJpaTest @Autowired constructor(
         projectCompleted = projectRepository.save(Project(
             title = "Graph Neural Networks",
             type = ProjectType.THESIS,
-            subType = mutableSetOf(ProjectSubType.TYPE_1),
+            subType = mutableSetOf(ProjectSubType.INVESTIGACION),
             applicationDomain = domain,
             completion = LocalDate.now(),
             career = career
@@ -53,7 +53,7 @@ class ProjectSpecificationsDataJpaTest @Autowired constructor(
         projectInProgress = projectRepository.save(Project(
             title = "Vision Transformers",
             type = ProjectType.THESIS,
-            subType = mutableSetOf(ProjectSubType.TYPE_1),
+            subType = mutableSetOf(ProjectSubType.INVESTIGACION),
             applicationDomain = domain,
             completion = null,
             career = career
@@ -63,7 +63,7 @@ class ProjectSpecificationsDataJpaTest @Autowired constructor(
         projectRepository.save(Project(
             title = "Data Science Project",
             type = ProjectType.FINAL_PROJECT,
-            subType = mutableSetOf(ProjectSubType.TYPE_2),
+            subType = mutableSetOf(ProjectSubType.INVESTIGACION),
             applicationDomain = domain,
             completion = null,
             career = differentCareer
