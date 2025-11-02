@@ -12,11 +12,13 @@ import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepositor
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
+import ar.edu.uns.cs.thesisflow.config.JpaAuditingConfig
 import ar.edu.uns.cs.thesisflow.projects.api.ProjectResourceRequest
 import ar.edu.uns.cs.thesisflow.projects.bulk.ProjectCsvParser
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.*
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.*
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -24,11 +26,16 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
+import org.springframework.test.context.TestPropertySource
+import org.springframework.context.annotation.Import
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import java.time.LocalDate
 
 @DataJpaTest
+@TestPropertySource(properties = ["spring.flyway.enabled=false"])
+@Import(JpaAuditingConfig::class)
 @Suppress("unused")
 class ProjectResourcesTest @Autowired constructor(
     private val projectRepository: ProjectRepository,
@@ -40,6 +47,7 @@ class ProjectResourcesTest @Autowired constructor(
     private val personRepository: PersonRepository,
     private val careerRepository: CareerRepository,
     private val studentCareerRepository: StudentCareerRepository,
+    private val entityManager: TestEntityManager,
 ) {
     private val currentUserService = CurrentUserService()
     private val projectAuthorizationService = ProjectAuthorizationService(
@@ -59,7 +67,8 @@ class ProjectResourcesTest @Autowired constructor(
         careerRepository,
         studentCareerRepository,
         projectAuthorizationService,
-        mockCsvParser
+        mockCsvParser,
+        jacksonObjectMapper()
     )
 
     private lateinit var career: Career
@@ -405,6 +414,27 @@ class ProjectResourcesTest @Autowired constructor(
         assertThatThrownBy {
             projectService.updateResources(project.publicId.toString(), requests)
         }.isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    @Test
+    fun `findByPublicId returns resources after reload`() {
+        val requests = (1..2).map { index ->
+            ProjectResourceRequest(
+                url = "https://example.com/resource-$index",
+                title = "Resource $index",
+                description = "Description $index"
+            )
+        }
+
+        projectService.updateResources(project.publicId.toString(), requests)
+
+        entityManager.flush()
+        entityManager.clear()
+
+        val result = projectService.findByPublicId(project.publicId.toString())
+
+        assertThat(result.resources).hasSize(requests.size)
+        assertThat(result.resources!!.map { it.title }).containsExactly("Resource 1", "Resource 2")
     }
 
     @Test

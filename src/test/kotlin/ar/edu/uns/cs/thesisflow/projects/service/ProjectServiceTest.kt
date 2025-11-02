@@ -14,6 +14,7 @@ import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.*
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.*
 import org.assertj.core.api.Assertions.assertThat
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -56,7 +57,8 @@ class ProjectServiceTest @Autowired constructor(
         careerRepository,
         studentCareerRepository,
         projectAuthorizationService,
-        mockCsvParser
+        mockCsvParser,
+        jacksonObjectMapper()
     )
 
     private lateinit var defaultCareer: Career

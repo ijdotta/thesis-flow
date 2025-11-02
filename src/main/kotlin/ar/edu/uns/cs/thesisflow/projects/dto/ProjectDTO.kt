@@ -6,6 +6,7 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectSubType
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
 
 data class ProjectDTO(
@@ -54,12 +55,16 @@ fun Project.toDTO(participantDTOs: List<ParticipantDTO> = listOf()) = ProjectDTO
     resources = parseResources(this.resources)
 )
 
-private fun parseResources(resourcesJson: String): List<ProjectResource> {
+private val resourcesObjectMapper: ObjectMapper by lazy { jacksonObjectMapper() }
+
+private fun parseResources(resourcesJson: String?): List<ProjectResource> {
+    if (resourcesJson.isNullOrBlank()) {
+        return emptyList()
+    }
     return try {
-        val objectMapper = ObjectMapper()
-        objectMapper.readValue(resourcesJson, Array<ProjectResource>::class.java).toList()
+        resourcesObjectMapper.readValue(resourcesJson, Array<ProjectResource>::class.java).toList()
     } catch (e: Exception) {
+        // Log the error but don't crash - return empty list
         emptyList()
     }
 }
-
