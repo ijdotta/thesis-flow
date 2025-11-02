@@ -216,17 +216,8 @@ class ProjectController(
     fun updateResources(
         @PathVariable id: String,
         @RequestBody requests: List<ProjectResourceRequest>
-    ): ResponseEntity<*> {
-        return try {
-            val result = projectService.updateResources(id, requests)
-            ResponseEntity.ok(result)
-        } catch (e: IllegalArgumentException) {
-            log.warn("Invalid resource request: {}", e.message)
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Invalid request")))
-        } catch (e: Exception) {
-            log.error("Error updating resources", e)
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(mapOf("error" to (e.message ?: "Unknown error occurred")))
-        }
+    ): ResponseEntity<ProjectDTO> {
+        val result = projectService.updateResources(id, requests)
+        return ResponseEntity.ok(result)
     }
 }
