@@ -6,9 +6,11 @@ import ar.edu.uns.cs.thesisflow.people.persistance.repository.PersonRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.ProfessorRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentCareerRepository
 import ar.edu.uns.cs.thesisflow.people.persistance.repository.StudentRepository
+import ar.edu.uns.cs.thesisflow.projects.api.ProjectResourceRequest
 import ar.edu.uns.cs.thesisflow.projects.bulk.ProjectCsvParser
 import ar.edu.uns.cs.thesisflow.projects.dto.ParticipantInfo
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
+import ar.edu.uns.cs.thesisflow.projects.dto.ProjectResource
 import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
@@ -17,6 +19,7 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ApplicationDomai
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectParticipantRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.transaction.Transactional
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -38,6 +41,7 @@ class ProjectService(
     private val projectAuthorizationService: ProjectAuthorizationService,
     private val csvParser: ProjectCsvParser,
 ) {
+    private val objectMapper = ObjectMapper()
     fun findAll(pageable: Pageable): Page<ProjectDTO> =
         findAll(pageable, ProjectFilter.empty())
 
@@ -192,6 +196,61 @@ class ProjectService(
             "message" to "Bulk import not yet implemented",
             "fileName" to (file.originalFilename ?: "unknown")
         )
+    }
+
+    @Transactional
+    fun updateResources(id: String, requests: List<ProjectResourceRequest>): ProjectDTO {
+        val entity = findEntityByPublicId(id)
+        projectAuthorizationService.ensureCanModify(entity)
+        
+        requests.forEach { validateResource(it) }
+        
+        val resources = requests.map { 
+            ProjectResource(url = it.url, title = it.title, description = it.description) 
+        }
+        entity.resources = objectMapper.writeValueAsString(resources)
+        
+        return projectRepository.save(entity).withEnrichedParticipants()
+    }
+
+    private fun validateResource(request: ProjectResourceRequest) {
+        if (request.url.isBlank()) {
+            throw IllegalArgumentException("URL cannot be empty")
+        }
+        
+        if (!isValidUrl(request.url)) {
+            throw IllegalArgumentException("URL must be a valid HTTP or HTTPS URL")
+        }
+        
+        if (request.title.isBlank()) {
+            throw IllegalArgumentException("Title cannot be empty")
+        }
+        
+        if (request.title.length > 255) {
+            throw IllegalArgumentException("Title cannot exceed 255 characters")
+        }
+        
+        if (request.description != null && request.description.length > 1000) {
+            throw IllegalArgumentException("Description cannot exceed 1000 characters")
+        }
+    }
+
+    private fun isValidUrl(urlString: String): Boolean {
+        return try {
+            java.net.URL(urlString)
+            val protocol = java.net.URL(urlString).protocol
+            protocol == "http" || protocol == "https"
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun parseResources(resourcesJson: String): List<ProjectResource> {
+        return try {
+            objectMapper.readValue(resourcesJson, Array<ProjectResource>::class.java).toList()
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }
 

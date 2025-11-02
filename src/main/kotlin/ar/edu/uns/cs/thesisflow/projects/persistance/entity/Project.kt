@@ -55,6 +55,8 @@ class Project(
     var tags: MutableSet<Tag> = mutableSetOf(),
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     var participants: MutableSet<ProjectParticipant> = mutableSetOf(),
+    @Column(nullable = false)
+    var resources: String = "[]",
 ) : BaseEntity() {
     @CreatedDate
     @Column(nullable = false, updatable = false)
