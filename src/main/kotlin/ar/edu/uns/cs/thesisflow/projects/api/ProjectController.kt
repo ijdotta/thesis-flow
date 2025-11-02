@@ -210,4 +210,14 @@ class ProjectController(
                 .body(mapOf("error" to (e.message ?: "Unknown error occurred")))
         }
     }
+
+    @PutMapping("/{id}/resources")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    fun updateResources(
+        @PathVariable id: String,
+        @RequestBody requests: List<ProjectResourceRequest>
+    ): ResponseEntity<ProjectDTO> {
+        val result = projectService.updateResources(id, requests)
+        return ResponseEntity.ok(result)
+    }
 }

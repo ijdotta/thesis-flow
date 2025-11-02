@@ -5,6 +5,7 @@ import ar.edu.uns.cs.thesisflow.catalog.dto.toDTO
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectSubType
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
+import com.fasterxml.jackson.databind.ObjectMapper
 import java.time.LocalDate
 
 data class ProjectDTO(
@@ -19,6 +20,7 @@ data class ProjectDTO(
     val applicationDomainDTO: ApplicationDomainDTO? = null,
     val tags: List<TagDTO>? = null,
     val participants: List<ParticipantDTO>? = null,
+    val resources: List<ProjectResource>? = null,
 ) {
     fun toEntity() = Project(
         title = title!!,
@@ -48,5 +50,16 @@ fun Project.toDTO(participantDTOs: List<ParticipantDTO> = listOf()) = ProjectDTO
     career = career?.toDTO(),
     applicationDomainDTO = applicationDomain?.toDTO(),
     tags = tags.map { it.toDTO() },
-    participants = participantDTOs
+    participants = participantDTOs,
+    resources = parseResources(this.resources)
 )
+
+private fun parseResources(resourcesJson: String): List<ProjectResource> {
+    return try {
+        val objectMapper = ObjectMapper()
+        objectMapper.readValue(resourcesJson, Array<ProjectResource>::class.java).toList()
+    } catch (e: Exception) {
+        emptyList()
+    }
+}
+
