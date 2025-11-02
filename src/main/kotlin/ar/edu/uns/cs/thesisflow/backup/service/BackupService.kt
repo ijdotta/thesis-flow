@@ -20,7 +20,6 @@ class BackupService(
         backup["professor"] = backupHelper.getAllProfessorBackups()
         backup["student"] = backupHelper.getAllStudentBackups()
         backup["student_career"] = backupHelper.getAllStudentCareerBackups()
-        backup["professor_login_token"] = backupHelper.getAllProfessorLoginTokenBackups()
         backup["application_domain"] = backupHelper.getAllApplicationDomainBackups()
         backup["tag"] = backupHelper.getAllTagBackups()
         backup["project"] = backupHelper.getAllProjectBackups()

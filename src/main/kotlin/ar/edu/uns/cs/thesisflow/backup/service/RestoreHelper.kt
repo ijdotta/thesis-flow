@@ -1,6 +1,5 @@
 package ar.edu.uns.cs.thesisflow.backup.service
 
-import ar.edu.uns.cs.thesisflow.auth.persistance.entity.ProfessorLoginToken
 import ar.edu.uns.cs.thesisflow.backup.dto.*
 import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
@@ -14,7 +13,6 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.EntityManager
-import java.time.ZoneOffset
 import java.util.UUID
 
 class RestoreHelper(
@@ -28,7 +26,6 @@ class RestoreHelper(
         private const val TABLE_PROFESSOR = "professor"
         private const val TABLE_STUDENT = "student"
         private const val TABLE_STUDENT_CAREER = "student_career"
-        private const val TABLE_PROFESSOR_LOGIN_TOKEN = "professor_login_token"
         private const val TABLE_APPLICATION_DOMAIN = "application_domain"
         private const val TABLE_TAG = "tag"
         private const val TABLE_PROJECT = "project"
@@ -39,7 +36,6 @@ class RestoreHelper(
             TABLE_PROJECT,
             TABLE_TAG,
             TABLE_APPLICATION_DOMAIN,
-            TABLE_PROFESSOR_LOGIN_TOKEN,
             TABLE_STUDENT_CAREER,
             TABLE_STUDENT,
             TABLE_PROFESSOR,
@@ -58,7 +54,6 @@ class RestoreHelper(
             restoreProfessors(backup)
             restoreStudents(backup)
             restoreStudentCareers(backup)
-            restoreProfessorLoginTokens(backup)
             restoreApplicationDomains(backup)
             restoreTags(backup)
             restoreProjects(backup)
@@ -158,27 +153,6 @@ class RestoreHelper(
             setEntityId(studentCareer, dto.id)
             setEntityPublicId(studentCareer, dto.publicId)
             entityManager.merge(studentCareer)
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun restoreProfessorLoginTokens(backup: Map<String, Any>) {
-        val rows = backup[TABLE_PROFESSOR_LOGIN_TOKEN] as? List<Map<String, Any>> ?: return
-        for (row in rows) {
-            val dto = objectMapper.convertValue(row, ProfessorLoginTokenBackupDto::class.java)
-            
-            val profQuery = entityManager.createQuery(
-                "SELECT p FROM Professor p WHERE p.publicId = :publicId", 
-                Professor::class.java
-            )
-            profQuery.setParameter("publicId", dto.professorPublicId)
-            val professor = profQuery.singleResult
-            
-            val instant = dto.expiresAt.atStartOfDay().toInstant(ZoneOffset.UTC)
-            val token = ProfessorLoginToken(professor, dto.tokenValue, instant)
-            setEntityId(token, dto.id)
-            setEntityPublicId(token, dto.publicId)
-            entityManager.merge(token)
         }
     }
 

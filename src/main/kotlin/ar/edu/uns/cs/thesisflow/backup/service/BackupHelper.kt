@@ -1,6 +1,5 @@
 package ar.edu.uns.cs.thesisflow.backup.service
 
-import ar.edu.uns.cs.thesisflow.auth.persistance.entity.ProfessorLoginToken
 import ar.edu.uns.cs.thesisflow.backup.dto.*
 import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
 import ar.edu.uns.cs.thesisflow.people.persistance.entity.Person
@@ -11,7 +10,6 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ApplicationDomain
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectParticipant
 import jakarta.persistence.EntityManager
-import java.time.ZoneOffset
 
 class BackupHelper(private val entityManager: EntityManager) {
 
@@ -44,14 +42,6 @@ class BackupHelper(private val entityManager: EntityManager) {
         return studentCareers.map { 
             StudentCareerBackupDto(it.id, it.publicId, it.student?.publicId ?: return@map null, it.career?.publicId ?: return@map null) 
         }.filterNotNull()
-    }
-
-    fun getAllProfessorLoginTokenBackups(): List<ProfessorLoginTokenBackupDto> {
-        val tokens = getAllEntitiesByType(ProfessorLoginToken::class.java)
-        return tokens.map { 
-            val localDate = java.time.LocalDate.ofInstant(it.expiresAt, ZoneOffset.UTC)
-            ProfessorLoginTokenBackupDto(it.id, it.publicId, it.professor.publicId, it.token, localDate) 
-        }
     }
 
     fun getAllApplicationDomainBackups(): List<ApplicationDomainBackupDto> {
