@@ -40,8 +40,8 @@ class ProjectService(
     private val studentCareerRepository: StudentCareerRepository,
     private val projectAuthorizationService: ProjectAuthorizationService,
     private val csvParser: ProjectCsvParser,
+    private val objectMapper: ObjectMapper,
 ) {
-    private val objectMapper = ObjectMapper()
     fun findAll(pageable: Pageable): Page<ProjectDTO> =
         findAll(pageable, ProjectFilter.empty())
 
