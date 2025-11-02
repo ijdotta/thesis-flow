@@ -8,4 +8,7 @@ enum class ProjectType {
 enum class ProjectSubType {
     TYPE_1,
     TYPE_2,
+    INVESTIGACION,
+    VINCULACION,
+    EXTENSION
 }
