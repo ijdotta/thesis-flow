@@ -1,8 +1,9 @@
 package ar.edu.uns.cs.thesisflow.backup.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.springframework.stereotype.Service
 import jakarta.persistence.EntityManager
+import jakarta.transaction.Transactional
+import org.springframework.stereotype.Service
 
 @Service
 class BackupService(
@@ -29,6 +30,7 @@ class BackupService(
             .writeValueAsString(backup)
     }
 
+    @Transactional
     fun restoreBackup(backupJson: String) {
         @Suppress("UNCHECKED_CAST")
         val backup = objectMapper.readValue(backupJson, Map::class.java) as Map<String, Any>
