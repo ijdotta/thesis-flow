@@ -1,0 +1,52 @@
+{
+  "career": [
+    {
+      "id": 1,
+      "publicId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "name": "Informatics",
+      "description": null
+    }
+  ],
+  "person": [
+    {
+      "id": 1,
+      "publicId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "name": "Ada",
+      "lastname": "Lovelace",
+      "email": ""
+    }
+  ],
+  "professor": [
+    {
+      "id": 1,
+      "publicId": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+      "email": "ada@example.com",
+      "personPublicId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    }
+  ],
+  "student": [],
+  "student_career": [],
+  "application_domain": [],
+  "tag": [],
+  "project": [
+    {
+      "id": 1,
+      "publicId": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+      "title": "Analytical Engine",
+      "description": null,
+      "type": "THESIS",
+      "completion": "2024-01-01",
+      "careerPublicId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "applicationDomainPublicId": null
+    }
+  ],
+  "project_participant": [
+    {
+      "id": 1,
+      "publicId": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+      "projectPublicId": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+      "personPublicId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "participantRole": "DIRECTOR"
+    }
+  ]
+}

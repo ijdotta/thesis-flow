@@ -13,6 +13,8 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.EntityManager
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 import java.util.UUID
 
 class RestoreHelper(
@@ -30,9 +32,13 @@ class RestoreHelper(
         private const val TABLE_TAG = "tag"
         private const val TABLE_PROJECT = "project"
         private const val TABLE_PROJECT_PARTICIPANT = "project_participant"
+        private const val TABLE_PROJECT_TAGS = "project_tags"
+        private const val TABLE_PROJECT_SUBTYPES = "project_subtypes"
 
         private val DELETE_ORDER = listOf(
             TABLE_PROJECT_PARTICIPANT,
+            TABLE_PROJECT_TAGS,
+            TABLE_PROJECT_SUBTYPES,
             TABLE_PROJECT,
             TABLE_TAG,
             TABLE_APPLICATION_DOMAIN,
@@ -250,24 +256,45 @@ class RestoreHelper(
         entityManager.flush()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun setEntityId(entity: Any, id: Long?) {
-        if (id == null) return
-        try {
-            val field = entity.javaClass.getDeclaredField("id")
-            field.isAccessible = true
-            field.set(entity, id)
-        } catch (e: Exception) {
-            // Silently fail if id cannot be set
-        }
+        // IDs are database-generated; keeping original IDs can cause stale state issues.
+        // We intentionally skip restoring them to let the database assign fresh values.
     }
 
     private fun setEntityPublicId(entity: Any, publicId: UUID) {
         try {
-            val field = entity.javaClass.getDeclaredField("publicId")
+            val field = findField(entity, "publicId") ?: return
             field.isAccessible = true
+            removeFinalModifier(field)
             field.set(entity, publicId)
         } catch (e: Exception) {
             // Silently fail if publicId cannot be set
+        }
+    }
+
+    private fun findField(entity: Any, fieldName: String): Field? {
+        var current: Class<*>? = entity.javaClass
+        while (current != null) {
+            try {
+                val field = current.getDeclaredField(fieldName)
+                field.isAccessible = true
+                return field
+            } catch (_: NoSuchFieldException) {
+                current = current.superclass
+            }
+        }
+        return null
+    }
+
+    private fun removeFinalModifier(field: Field) {
+        try {
+            val modifiersField = Field::class.java.getDeclaredField("modifiers")
+            modifiersField.isAccessible = true
+            val modifiers = modifiersField.getInt(field)
+            modifiersField.setInt(field, modifiers and Modifier.FINAL.inv())
+        } catch (_: Exception) {
+            // Ignore if we cannot modify final flag (field might still be writable depending on JVM)
         }
     }
 }
