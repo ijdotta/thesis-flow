@@ -77,6 +77,7 @@ data class ProjectBackupDto(
     val completion: LocalDate?,
     val careerPublicId: UUID?, // Reference to Career
     val applicationDomainPublicId: UUID?, // Reference to ApplicationDomain
+    val resources: String = "[]", // JSON string of resources
 )
 
 data class ProjectParticipantBackupDto(

@@ -75,4 +75,9 @@ class ProfessorService(
         professorDTO.update(professor)
         return professorRepository.save(professor).toDTO()
     }
+
+    fun delete(publicId: String) {
+        val professor = findEntityByPublicId(publicId)
+        professorRepository.delete(professor)
+    }
 }

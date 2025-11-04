@@ -65,7 +65,8 @@ data class YearRange(
 data class FiltersResponse(
     val careers: List<FilterOption>,
     val professors: List<FilterOption>,
-    val yearRange: YearRange
+    val yearRange: YearRange,
+    val projectTypes: List<FilterOption>
 )
 
 // Project Type Statistics DTOs
@@ -87,7 +88,8 @@ data class OverviewStats(
     val filteredProjects: Int,
     val uniqueDomains: Int,
     val uniqueTags: Int,
-    val uniqueProfessors: Int
+    val uniqueProfessors: Int,
+    val projectsWithAccessibleUrl: Int
 )
 
 data class TopItemData(
