@@ -210,7 +210,13 @@ class AnalyticsService(
             YearRange(minYear = 2010, maxYear = LocalDate.now().year)
         }
 
-        return FiltersResponse(careers, professors, yearRange)
+        // Project types
+        val projectTypes = listOf(
+            FilterOption("THESIS", "Tesis"),
+            FilterOption("FINAL_PROJECT", "Proyecto Final")
+        )
+
+        return FiltersResponse(careers, professors, yearRange, projectTypes)
     }
 
     fun getProjectTypeStats(
@@ -302,7 +308,10 @@ class AnalyticsService(
                 .filter { it.participantRole in setOf(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR) }
                 .map { it.person.publicId }
                 .distinct()
-                .size
+                .size,
+            projectsWithAccessibleUrl = filteredProjects.count { 
+                it.resources != null && it.resources.trim() != "[]" && it.resources.trim().isNotEmpty()
+            }
         )
 
         // Top domains
