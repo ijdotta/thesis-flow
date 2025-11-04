@@ -3,6 +3,7 @@ package ar.edu.uns.cs.thesisflow.projects.api
 import ar.edu.uns.cs.thesisflow.projects.dto.ProjectDTO
 import ar.edu.uns.cs.thesisflow.projects.dto.toDTO
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import ar.edu.uns.cs.thesisflow.projects.service.ProjectService
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -22,6 +23,7 @@ class PublicProjectController(
         @RequestParam(required = false, defaultValue = "20") size: Int,
         @RequestParam(required = false) careerIds: String?,
         @RequestParam(required = false) professorIds: String?,
+        @RequestParam(required = false) projectTypeIds: String?,
         @RequestParam(required = false) fromYear: Int?,
         @RequestParam(required = false) toYear: Int?,
         @RequestParam(required = false) search: String?,
@@ -29,10 +31,16 @@ class PublicProjectController(
         val pageable = PageRequest.of(page, size)
         val careerUuids = careerIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
         val professorUuids = professorIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val projectTypes = projectTypeIds?.split(",")?.map { it.trim().uppercase() }?.mapNotNull { typeStr ->
+            runCatching { ProjectType.valueOf(typeStr) }.getOrNull()
+        }
 
         val allProjects = projectService.getAll()
             .filter { project ->
                 careerUuids == null || project.career?.publicId in careerUuids
+            }
+            .filter { project ->
+                projectTypes == null || project.type in projectTypes
             }
             .filter { project ->
                 professorUuids == null || project.participants.any { participant ->
