@@ -215,6 +215,7 @@ class RestoreHelper(
             project.career = career
             project.applicationDomain = domain
             project.completion = dto.completion
+            project.resources = dto.resources
             setEntityId(project, dto.id)
             setEntityPublicId(project, dto.publicId)
             entityManager.merge(project)
