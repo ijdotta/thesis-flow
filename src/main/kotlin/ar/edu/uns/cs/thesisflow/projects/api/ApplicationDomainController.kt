@@ -14,13 +14,20 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/application-domains")
 class ApplicationDomainController(
     private val service: ApplicationDomainService,
 ) {
+    private val sortableFields = mapOf(
+        "name" to "name",
+        "description" to "description"
+    )
 
     @GetMapping
     fun findAll(
@@ -30,7 +37,7 @@ class ApplicationDomainController(
         @RequestParam(required = false) description: String?,
         @RequestParam(required = false) sort: String?,
     ) = ResponseEntity.ok(service.findAll(
-        PageRequest.of(page, size),
+        PageRequest.of(page, size, sort.toSort()),
         ApplicationDomainFilter(
             name = name?.takeIf { it.isNotBlank() },
             description = description?.takeIf { it.isNotBlank() }
@@ -56,4 +63,15 @@ class ApplicationDomainController(
 
     @DeleteMapping("/{id}")
     fun delete(@PathVariable("id") id: String) = service.delete(id)
+
+    private fun String?.toSort(): Sort {
+        if (this.isNullOrBlank()) return Sort.unsorted()
+        val parts = this.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        if (parts.isEmpty()) return Sort.unsorted()
+        val fieldKey = parts[0]
+        val mappedField = sortableFields[fieldKey]
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid sort field '$fieldKey'")
+        val direction = if (parts.size > 1) parts[1].lowercase() else "asc"
+        return if (direction == "desc") Sort.by(mappedField).descending() else Sort.by(mappedField).ascending()
+    }
 }
