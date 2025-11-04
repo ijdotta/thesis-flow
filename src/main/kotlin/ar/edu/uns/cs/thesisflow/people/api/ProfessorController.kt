@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -62,6 +63,12 @@ class ProfessorController(
     fun update(@PathVariable publicId: String, @RequestBody professorDTO: ProfessorDTO) = with(professorDTO) {
         val professorWithId = professorDTO.copy(publicId = publicId)
         ResponseEntity.ok(professorService.update(professorWithId))
+    }
+
+    @DeleteMapping("/{publicId}")
+    fun delete(@PathVariable publicId: String): ResponseEntity<Unit> {
+        professorService.delete(publicId)
+        return ResponseEntity.ok().build()
     }
 
     private fun validateParams(paramNames: Set<String>) {
