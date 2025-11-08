@@ -19,7 +19,6 @@ class GetThesisTimelineCommand(
         toYear: Int? = null,
     ): ThesisTimelineResponse {
         val projects = projectRepository.findAll()
-            .filter { it.type == ProjectType.THESIS }
             .filter { project ->
                 careerIds == null || project.career?.publicId in careerIds
             }
