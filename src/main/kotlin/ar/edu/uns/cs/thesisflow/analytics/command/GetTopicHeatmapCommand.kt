@@ -26,9 +26,9 @@ class GetTopicHeatmapCommand(
             }
 
         val data = projects
-            .flatMap { project ->
-                project.tags.map { tag ->
-                    Triple(tag.name, project.initialSubmission.year, project.publicId)
+            .mapNotNull { project ->
+                project.applicationDomain?.let { domain ->
+                    Triple(domain.name, project.initialSubmission.year, project.publicId)
                 }
             }
             .groupBy { (topic, year) -> topic to year }
