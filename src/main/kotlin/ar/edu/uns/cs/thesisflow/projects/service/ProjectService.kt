@@ -20,6 +20,7 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectParticipa
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.persistence.EntityManager
 import jakarta.transaction.Transactional
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -41,6 +42,7 @@ class ProjectService(
     private val projectAuthorizationService: ProjectAuthorizationService,
     private val csvParser: ProjectCsvParser,
     private val objectMapper: ObjectMapper,
+    private val entityManager: EntityManager,
 ) {
     fun findAll(pageable: Pageable): Page<ProjectDTO> =
         findAll(pageable, ProjectFilter.empty())
@@ -109,6 +111,10 @@ class ProjectService(
     @Transactional
     fun setParticipants(id: String, participantInfos: List<ParticipantInfo>): ProjectDTO {
         val project = findEntityByPublicId(id)
+        // Delete all existing participants first, then save new ones
+        projectParticipantRepository.deleteAllByProject(project)
+        // Flush to ensure delete is executed before insert
+        entityManager.flush()
         val participants = participantInfos.map { it.toProjectParticipantEntity(project) }
         val participantDTOs = projectParticipantRepository.saveAll(participants).map { it.toDTO() }
         return project.toDTO(participantDTOs)
@@ -145,11 +151,17 @@ class ProjectService(
         val publicId = UUID.fromString(participantId)
         return when (role) {
             ParticipantRole.STUDENT -> {
+                // Try to find as student first, then as person
                 val student = studentRepository.findByPublicId(publicId)
-                    ?: throw NoSuchElementException("Student not found for publicId $publicId")
+                val person = personRepository.findByPublicId(publicId)
+                
+                val resolvedStudent = student ?: (person?.let { personObj ->
+                    // If we found a person, try to find their student record
+                    studentRepository.findFirstByPerson(personObj)
+                } ?: throw NoSuchElementException("Student or person not found for publicId $publicId"))
 
                 // Validate that the project's career is in the student's careers
-                val studentCareers = studentCareerRepository.findAllByStudent(student)
+                val studentCareers = studentCareerRepository.findAllByStudent(resolvedStudent)
                     .mapNotNull { it.career }
 
                 if (!studentCareers.any { it.id == project.career!!.id }) {
@@ -158,11 +170,13 @@ class ProjectService(
                     )
                 }
 
-                student.person ?: throw IllegalStateException("Student has no associated person")
+                resolvedStudent.person ?: throw IllegalStateException("Student has no associated person")
             }
             ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR -> {
+                // Try to find as professor first, then as person
                 professorRepository.findByPublicId(publicId)?.person
-                    ?: throw NoSuchElementException("Professor not found for publicId $publicId")
+                    ?: personRepository.findByPublicId(publicId)
+                    ?: throw NoSuchElementException("Professor or person not found for publicId $publicId")
             }
             ParticipantRole.COLLABORATOR -> {
                 personRepository.findByPublicId(publicId)

@@ -5,6 +5,7 @@ import ar.edu.uns.cs.thesisflow.catalog.dto.toDTO
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.Project
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectSubType
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
@@ -18,6 +19,7 @@ data class ProjectDTO(
     val completion: LocalDate? = null,
     val careerPublicId: String? = null,
     val career: CareerDTO? = null,
+    @JsonProperty("applicationDomain")
     val applicationDomainDTO: ApplicationDomainDTO? = null,
     val tags: List<TagDTO>? = null,
     val participants: List<ParticipantDTO>? = null,
