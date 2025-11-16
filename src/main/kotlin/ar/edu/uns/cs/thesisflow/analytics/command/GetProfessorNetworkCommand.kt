@@ -4,6 +4,7 @@ import ar.edu.uns.cs.thesisflow.analytics.dto.NetworkEdge
 import ar.edu.uns.cs.thesisflow.analytics.dto.NetworkNode
 import ar.edu.uns.cs.thesisflow.analytics.dto.ProfessorNetworkResponse
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import org.springframework.stereotype.Component
 import java.util.*
@@ -15,12 +16,16 @@ class GetProfessorNetworkCommand(
     fun execute(
         careerIds: List<UUID>? = null,
         professorIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): ProfessorNetworkResponse {
         val projects = projectRepository.findAll()
             .filter { project ->
                 careerIds == null || project.career?.publicId in careerIds
+            }
+            .filter { project ->
+                projectTypes == null || project.type in projectTypes
             }
             .filter { project ->
                 val projectYear = project.initialSubmission.year

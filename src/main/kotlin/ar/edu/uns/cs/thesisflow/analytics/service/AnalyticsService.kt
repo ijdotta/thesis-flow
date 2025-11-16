@@ -20,10 +20,11 @@ class AnalyticsService(
     fun getThesisTimeline(
         careerIds: List<UUID>? = null,
         professorIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): ThesisTimelineResponse {
-        return getThesisTimelineCommand.execute(careerIds, professorIds, fromYear, toYear)
+        return getThesisTimelineCommand.execute(careerIds, professorIds, projectTypes, fromYear, toYear)
     }
 
     fun getTopicHeatmap(
@@ -38,18 +39,20 @@ class AnalyticsService(
     fun getProfessorNetwork(
         careerIds: List<UUID>? = null,
         professorIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): ProfessorNetworkResponse {
-        return getProfessorNetworkCommand.execute(careerIds, professorIds, fromYear, toYear)
+        return getProfessorNetworkCommand.execute(careerIds, professorIds, projectTypes, fromYear, toYear)
     }
 
     fun getCareerYearStats(
         careerIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): CareerYearStatsResponse {
-        return getCareerYearStatsCommand.execute(careerIds, fromYear, toYear)
+        return getCareerYearStatsCommand.execute(careerIds, projectTypes, fromYear, toYear)
     }
 
     fun getFilters(): FiltersResponse {
