@@ -147,11 +147,17 @@ class ProjectService(
         val publicId = UUID.fromString(participantId)
         return when (role) {
             ParticipantRole.STUDENT -> {
+                // Try to find as student first, then as person
                 val student = studentRepository.findByPublicId(publicId)
-                    ?: throw NoSuchElementException("Student not found for publicId $publicId")
+                val person = personRepository.findByPublicId(publicId)
+                
+                val resolvedStudent = student ?: (person?.let { personObj ->
+                    // If we found a person, try to find their student record
+                    studentRepository.findFirstByPerson(personObj)
+                } ?: throw NoSuchElementException("Student or person not found for publicId $publicId"))
 
                 // Validate that the project's career is in the student's careers
-                val studentCareers = studentCareerRepository.findAllByStudent(student)
+                val studentCareers = studentCareerRepository.findAllByStudent(resolvedStudent)
                     .mapNotNull { it.career }
 
                 if (!studentCareers.any { it.id == project.career!!.id }) {
@@ -160,7 +166,7 @@ class ProjectService(
                     )
                 }
 
-                student.person ?: throw IllegalStateException("Student has no associated person")
+                resolvedStudent.person ?: throw IllegalStateException("Student has no associated person")
             }
             ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR -> {
                 // Try to find as professor first, then as person
