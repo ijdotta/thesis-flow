@@ -109,6 +109,8 @@ class ProjectService(
     @Transactional
     fun setParticipants(id: String, participantInfos: List<ParticipantInfo>): ProjectDTO {
         val project = findEntityByPublicId(id)
+        // Delete all existing participants first, then save new ones
+        projectParticipantRepository.deleteAllByProject(project)
         val participants = participantInfos.map { it.toProjectParticipantEntity(project) }
         val participantDTOs = projectParticipantRepository.saveAll(participants).map { it.toDTO() }
         return project.toDTO(participantDTOs)
