@@ -2,6 +2,7 @@ package ar.edu.uns.cs.thesisflow.analytics.service
 
 import ar.edu.uns.cs.thesisflow.analytics.command.*
 import ar.edu.uns.cs.thesisflow.analytics.dto.*
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -19,35 +20,39 @@ class AnalyticsService(
     fun getThesisTimeline(
         careerIds: List<UUID>? = null,
         professorIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): ThesisTimelineResponse {
-        return getThesisTimelineCommand.execute(careerIds, professorIds, fromYear, toYear)
+        return getThesisTimelineCommand.execute(careerIds, professorIds, projectTypes, fromYear, toYear)
     }
 
     fun getTopicHeatmap(
         careerIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): TopicHeatmapResponse {
-        return getTopicHeatmapCommand.execute(careerIds, fromYear, toYear)
+        return getTopicHeatmapCommand.execute(careerIds, projectTypes, fromYear, toYear)
     }
 
     fun getProfessorNetwork(
         careerIds: List<UUID>? = null,
         professorIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): ProfessorNetworkResponse {
-        return getProfessorNetworkCommand.execute(careerIds, professorIds, fromYear, toYear)
+        return getProfessorNetworkCommand.execute(careerIds, professorIds, projectTypes, fromYear, toYear)
     }
 
     fun getCareerYearStats(
         careerIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): CareerYearStatsResponse {
-        return getCareerYearStatsCommand.execute(careerIds, fromYear, toYear)
+        return getCareerYearStatsCommand.execute(careerIds, projectTypes, fromYear, toYear)
     }
 
     fun getFilters(): FiltersResponse {

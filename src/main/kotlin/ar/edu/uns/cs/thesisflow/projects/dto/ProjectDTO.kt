@@ -13,7 +13,7 @@ data class ProjectDTO(
     val publicId: String? = null,
     val title: String? = null,
     val type: String? = null,
-    val subtype: List<String>? = null,
+    val subtypes: List<String>? = null,
     val initialSubmission: LocalDate? = null,
     val completion: LocalDate? = null,
     val careerPublicId: String? = null,
@@ -26,7 +26,7 @@ data class ProjectDTO(
     fun toEntity() = Project(
         title = title!!,
         type = ProjectType.valueOf(type!!),
-        subType = subtype?.map { ProjectSubType.valueOf(it) }?.toMutableSet() ?: mutableSetOf(),
+        subType = subtypes?.map { ProjectSubType.valueOf(it) }?.toMutableSet() ?: mutableSetOf(),
         initialSubmission = initialSubmission!!,
         completion = completion,
     )
@@ -34,7 +34,7 @@ data class ProjectDTO(
     fun update(project: Project) {
         title?.let { project.title = it }
         type?.let { project.type = ProjectType.valueOf(it) }
-        subtype?.let { project.subType = subtype.map { ProjectSubType.valueOf(it) }.toMutableSet() }
+        subtypes?.let { project.subType = subtypes.map { ProjectSubType.valueOf(it) }.toMutableSet() }
         initialSubmission?.let { project.initialSubmission = it }
         completion?.let { project.completion = it }
         career?.let { project.career = it.toEntity() }
@@ -45,7 +45,7 @@ fun Project.toDTO(participantDTOs: List<ParticipantDTO> = listOf()) = ProjectDTO
     publicId = this.publicId.toString(),
     title = this.title,
     type = this.type.name,
-    subtype = this.subType.map { it.name }.toList(),
+    subtypes = this.subType.map { it.name }.toList(),
     initialSubmission = initialSubmission,
     completion = completion,
     career = career?.toDTO(),

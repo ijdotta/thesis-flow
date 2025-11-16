@@ -15,12 +15,16 @@ class GetThesisTimelineCommand(
     fun execute(
         careerIds: List<UUID>? = null,
         professorIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): ThesisTimelineResponse {
         val projects = projectRepository.findAll()
             .filter { project ->
                 careerIds == null || project.career?.publicId in careerIds
+            }
+            .filter { project ->
+                projectTypes == null || project.type in projectTypes
             }
             .filter { project ->
                 val projectYear = project.initialSubmission.year
