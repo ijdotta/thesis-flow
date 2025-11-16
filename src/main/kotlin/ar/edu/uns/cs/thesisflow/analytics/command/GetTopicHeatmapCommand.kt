@@ -2,6 +2,7 @@ package ar.edu.uns.cs.thesisflow.analytics.command
 
 import ar.edu.uns.cs.thesisflow.analytics.dto.TopicHeatmapData
 import ar.edu.uns.cs.thesisflow.analytics.dto.TopicHeatmapResponse
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import org.springframework.stereotype.Component
 import java.util.*
@@ -12,12 +13,16 @@ class GetTopicHeatmapCommand(
 ) {
     fun execute(
         careerIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): TopicHeatmapResponse {
         val projects = projectRepository.findAll()
             .filter { project ->
                 careerIds == null || project.career?.publicId in careerIds
+            }
+            .filter { project ->
+                projectTypes == null || project.type in projectTypes
             }
             .filter { project ->
                 val projectYear = project.initialSubmission.year

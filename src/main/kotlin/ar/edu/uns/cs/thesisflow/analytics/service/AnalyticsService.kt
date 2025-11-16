@@ -2,6 +2,7 @@ package ar.edu.uns.cs.thesisflow.analytics.service
 
 import ar.edu.uns.cs.thesisflow.analytics.command.*
 import ar.edu.uns.cs.thesisflow.analytics.dto.*
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -27,10 +28,11 @@ class AnalyticsService(
 
     fun getTopicHeatmap(
         careerIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): TopicHeatmapResponse {
-        return getTopicHeatmapCommand.execute(careerIds, fromYear, toYear)
+        return getTopicHeatmapCommand.execute(careerIds, projectTypes, fromYear, toYear)
     }
 
     fun getProfessorNetwork(

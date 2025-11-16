@@ -34,13 +34,17 @@ class AnalyticsController(
     @GetMapping("/topic-heatmap")
     fun getTopicHeatmap(
         @RequestParam(required = false) careerIds: String?,
+        @RequestParam(required = false) projectTypeIds: String?,
         @RequestParam(required = false) fromYear: Int?,
         @RequestParam(required = false) toYear: Int?,
     ): ResponseEntity<TopicHeatmapResponse> {
         val careerUuids = careerIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val projectTypes = projectTypeIds?.split(",")?.mapNotNull { type ->
+            runCatching { ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType.valueOf(type.trim()) }.getOrNull()
+        }
         
         return ResponseEntity.ok(
-            analyticsService.getTopicHeatmap(careerUuids, fromYear, toYear)
+            analyticsService.getTopicHeatmap(careerUuids, projectTypes, fromYear, toYear)
         )
     }
 
