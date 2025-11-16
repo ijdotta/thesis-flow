@@ -48,8 +48,8 @@ object ProjectSpecifications {
 
             // Title LIKE
             filter.title?.takeIf { it.isNotBlank() }?.let { t ->
-                val pattern = "%${t.lowercase()}%"
-                predicates += cb.like(cb.lower(root.get("title")), pattern)
+                val pattern = "%${SearchNormalizer.normalize(t)}%"
+                predicates += cb.like(cb.function("lower", String::class.java, cb.function("unaccent", String::class.java, root.get("title"))), pattern)
             }
 
             // Type equality or IN (comma separated list supported)
