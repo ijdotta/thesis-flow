@@ -20,6 +20,7 @@ import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectParticipa
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.TagRepository
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.persistence.EntityManager
 import jakarta.transaction.Transactional
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -41,6 +42,7 @@ class ProjectService(
     private val projectAuthorizationService: ProjectAuthorizationService,
     private val csvParser: ProjectCsvParser,
     private val objectMapper: ObjectMapper,
+    private val entityManager: EntityManager,
 ) {
     fun findAll(pageable: Pageable): Page<ProjectDTO> =
         findAll(pageable, ProjectFilter.empty())
@@ -111,6 +113,8 @@ class ProjectService(
         val project = findEntityByPublicId(id)
         // Delete all existing participants first, then save new ones
         projectParticipantRepository.deleteAllByProject(project)
+        // Flush to ensure delete is executed before insert
+        entityManager.flush()
         val participants = participantInfos.map { it.toProjectParticipantEntity(project) }
         val participantDTOs = projectParticipantRepository.saveAll(participants).map { it.toDTO() }
         return project.toDTO(participantDTOs)
