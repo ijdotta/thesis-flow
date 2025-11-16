@@ -163,8 +163,10 @@ class ProjectService(
                 student.person ?: throw IllegalStateException("Student has no associated person")
             }
             ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR -> {
+                // Try to find as professor first, then as person
                 professorRepository.findByPublicId(publicId)?.person
-                    ?: throw NoSuchElementException("Professor not found for publicId $publicId")
+                    ?: personRepository.findByPublicId(publicId)
+                    ?: throw NoSuchElementException("Professor or person not found for publicId $publicId")
             }
             ParticipantRole.COLLABORATOR -> {
                 personRepository.findByPublicId(publicId)
