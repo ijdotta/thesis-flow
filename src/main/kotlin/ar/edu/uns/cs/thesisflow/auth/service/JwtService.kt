@@ -47,7 +47,6 @@ class JwtService(
             .claim("role", principal.role.name)
             .claim("userId", principal.publicId.toString())
             .claim("professorId", principal.professorPublicId?.toString())
-            .claim("professorPersonId", principal.professorPersonPublicId?.toString())
             .signWith(signingKey, SignatureAlgorithm.HS256)
             .compact()
         return JwtToken(token, expiration)
