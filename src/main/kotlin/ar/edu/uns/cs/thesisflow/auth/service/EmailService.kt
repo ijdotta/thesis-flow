@@ -31,7 +31,7 @@ class EmailService(
      */
     fun sendProfessorLoginLink(professor: Professor, loginLink: String) {
         val emailBody = buildEmailBody(professor.person.name, loginLink)
-        val subject = "Your Magic Login Link for Thesis Flow"
+        val subject = "Tu enlace mágico para acceder a Thesis Flow"
 
         try {
             emailSender.send(professor.email, subject, emailBody)
@@ -71,32 +71,32 @@ class EmailService(
                 </div>
                 
                 <div class="content">
-                  <h2>Hello $professorName,</h2>
+                  <h2>Hola $professorName,</h2>
                   
-                  <p>You requested a login link to access Thesis Flow. Click the button below to login:</p>
+                  <p>Solicitaste un enlace para acceder a Thesis Flow. Haz clic en el botón de abajo para iniciar sesión:</p>
                   
                   <center>
                     <a href="$loginLink" class="button">
-                      Login to Thesis Flow
+                      Iniciar sesión en Thesis Flow
                     </a>
                   </center>
                   
-                  <p>Or copy and paste this link in your browser:</p>
+                  <p>O copia y pega este enlace en tu navegador:</p>
                   <p style="word-break: break-all; background: white; padding: 10px; border-radius: 3px;">
                     $loginLink
                   </p>
                   
-                  <p><strong>⚠️ Important:</strong></p>
+                  <p><strong>⚠️ Importante:</strong></p>
                   <ul>
-                    <li>This link expires in <strong>15 minutes</strong></li>
-                    <li>This link can only be used once</li>
-                    <li>If you didn't request this link, you can safely ignore this email</li>
+                    <li>Este enlace vence en <strong>15 minutos</strong></li>
+                    <li>Este enlace solo se puede usar una vez</li>
+                    <li>Si no solicitaste este enlace, puedes ignorar este email de forma segura</li>
                   </ul>
                 </div>
                 
                 <div class="footer">
-                  <p>© 2025 Thesis Flow. All rights reserved.</p>
-                  <p>This is an automated email, please do not reply.</p>
+                  <p>© 2025 Thesis Flow. Todos los derechos reservados.</p>
+                  <p>Este es un email automático, por favor no respondas.</p>
                 </div>
               </div>
             </body>
