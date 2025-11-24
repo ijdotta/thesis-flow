@@ -119,10 +119,12 @@ object ProjectSpecifications {
                 if (sub != null) {
                     val pp = sub.from(ProjectParticipant::class.java)
                     val person = pp.join<ProjectParticipant, Person>("person", JoinType.LEFT)
+                    val professor = sub.from(Professor::class.java)
                     sub.select(cb.literal(1L)).where(
                         cb.equal(pp.get<Project>("project"), root),
                         pp.get<ParticipantRole>("participantRole").`in`(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR),
-                        cb.equal(person.get<UUID>("publicId"), professorUuid)
+                        cb.equal(professor.get<Person>("person"), person),
+                        cb.equal(professor.get<UUID>("publicId"), professorUuid)
                     )
                     predicates += cb.exists(sub)
                 }
