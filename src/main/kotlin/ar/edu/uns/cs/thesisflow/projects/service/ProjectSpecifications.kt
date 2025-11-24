@@ -118,12 +118,11 @@ object ProjectSpecifications {
                 val sub = query?.subquery(Long::class.java)
                 if (sub != null) {
                     val pp = sub.from(ProjectParticipant::class.java)
-                    val professor = sub.from(Professor::class.java)
+                    val person = pp.join<ProjectParticipant, Person>("person", JoinType.LEFT)
                     sub.select(cb.literal(1L)).where(
                         cb.equal(pp.get<Project>("project"), root),
                         pp.get<ParticipantRole>("participantRole").`in`(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR),
-                        cb.equal(professor.get<Person>("person"), pp.get<Person>("person")),
-                        cb.equal(professor.get<UUID>("publicId"), professorUuid)
+                        cb.equal(person.get<UUID>("publicId"), professorUuid)
                     )
                     predicates += cb.exists(sub)
                 }
