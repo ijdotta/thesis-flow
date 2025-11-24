@@ -1,11 +1,7 @@
 package ar.edu.uns.cs.thesisflow.auth.service
 
-import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.json.gson.GsonFactory
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import java.io.ByteArrayOutputStream
 import java.util.*
 import jakarta.mail.Session
@@ -32,7 +28,6 @@ import java.net.URL
  * @see https://developers.google.com/workspace/gmail/api/quickstart/java
  */
 class GmailEmailSender(
-    private val enabled: Boolean,
     private val credentialsPath: String,
     private val userEmail: String
 ) : EmailSender {
@@ -41,7 +36,7 @@ class GmailEmailSender(
     private var tokenExpiry: Long = 0
 
     init {
-        if (enabled && credentialsPath.isNotBlank()) {
+        if (credentialsPath.isNotBlank()) {
             initializeGmailService()
         }
     }
@@ -69,17 +64,6 @@ class GmailEmailSender(
     }
 
     /**
-     * Refresh access token if expired.
-     */
-    private fun refreshTokenIfNeeded(credentials: GoogleCredentials) {
-        if (System.currentTimeMillis() > tokenExpiry) {
-            credentials.refresh()
-            accessToken = credentials.accessToken.tokenValue
-            tokenExpiry = credentials.accessToken.expirationTime?.time ?: 0
-        }
-    }
-
-    /**
      * Send email using Gmail API.
      *
      * @param to Recipient email address
@@ -88,11 +72,6 @@ class GmailEmailSender(
      * @throws RuntimeException if email sending fails
      */
     override fun send(to: String, subject: String, htmlBody: String) {
-        if (!enabled) {
-            logger.warn("Gmail API is disabled. Configure gmail.enabled=true and provide credentials-path.")
-            throw RuntimeException("Gmail API sender is not enabled")
-        }
-
         if (accessToken.isNullOrBlank()) {
             throw RuntimeException("Gmail API service is not initialized")
         }

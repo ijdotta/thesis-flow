@@ -45,7 +45,6 @@ class EmailSenderConfiguration {
     ): EmailSender {
         logger.info("Email provider: Gmail API (gmail.enabled=true)")
         return GmailEmailSender(
-            enabled = true,
             credentialsPath = credentialsPath,
             userEmail = userEmail
         )
