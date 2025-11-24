@@ -18,8 +18,7 @@ data class StudentFilter(
 object StudentSpecifications {
     fun withFilter(filter: StudentFilter): Specification<Student> {
         if (filter.isEmpty) return Specification<Student> { _, _, _ -> null }
-        return Specification { root, query, cb ->
-            query?.distinct(true)
+        return Specification { root, _, cb ->
             val predicates = mutableListOf<Predicate>()
             val personJoin = root.join<Student, Any>("person", JoinType.LEFT)
 

@@ -16,8 +16,7 @@ data class ProfessorFilter(
 object ProfessorSpecifications {
     fun withFilter(filter: ProfessorFilter): Specification<Professor> {
         if (filter.isEmpty) return Specification<Professor> { _, _, _ -> null }
-        return Specification { root, query, cb ->
-            query?.distinct(true)
+        return Specification { root, _, cb ->
             val predicates = mutableListOf<Predicate>()
 
             // Lastname LIKE - join to person
