@@ -36,6 +36,11 @@ spring:
             enable: true
             required: true
 
+gmail:
+  enabled: ${GMAIL_ENABLED:false}
+  credentials-path: ${GMAIL_CREDENTIALS_PATH:}
+  user-email: ${GMAIL_USER_EMAIL:me}
+
 server:
   port: ${SERVER_PORT:8080}
 
