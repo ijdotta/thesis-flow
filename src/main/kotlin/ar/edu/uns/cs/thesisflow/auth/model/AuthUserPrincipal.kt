@@ -12,6 +12,7 @@ class AuthUserPrincipal private constructor(
     private val passwordValue: String,
     val role: UserRole,
     val professorPublicId: UUID?,
+    val professorPersonPublicId: UUID?,
 ) : UserDetails {
 
     override fun getAuthorities(): Collection<GrantedAuthority> =
@@ -34,7 +35,8 @@ class AuthUserPrincipal private constructor(
             usernameValue = user.username,
             passwordValue = user.password,
             role = user.role,
-            professorPublicId = user.professor?.publicId
+            professorPublicId = user.professor?.publicId,
+            professorPersonPublicId = user.professor?.person?.publicId
         )
     }
 }
