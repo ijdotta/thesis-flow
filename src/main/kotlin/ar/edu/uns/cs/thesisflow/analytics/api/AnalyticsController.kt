@@ -38,17 +38,19 @@ class AnalyticsController(
     @GetMapping("/topic-heatmap")
     fun getTopicHeatmap(
         @RequestParam(required = false) careerIds: String?,
+        @RequestParam(required = false) professorIds: String?,
         @RequestParam(required = false) projectTypeIds: String?,
         @RequestParam(required = false) fromYear: Int?,
         @RequestParam(required = false) toYear: Int?,
     ): ResponseEntity<TopicHeatmapResponse> {
         val careerUuids = careerIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val professorUuids = professorIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
         val projectTypes = projectTypeIds?.split(",")?.mapNotNull { type ->
             runCatching { ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType.valueOf(type.trim()) }.getOrNull()
         }
         
         return ResponseEntity.ok(
-            analyticsService.getTopicHeatmap(careerUuids, projectTypes, fromYear, toYear)
+            analyticsService.getTopicHeatmap(careerUuids, professorUuids, projectTypes, fromYear, toYear)
         )
     }
 
@@ -74,17 +76,19 @@ class AnalyticsController(
     @GetMapping("/career-year-stats")
     fun getCareerYearStats(
         @RequestParam(required = false) careerIds: String?,
+        @RequestParam(required = false) professorIds: String?,
         @RequestParam(required = false) projectTypeIds: String?,
         @RequestParam(required = false) fromYear: Int?,
         @RequestParam(required = false) toYear: Int?,
     ): ResponseEntity<CareerYearStatsResponse> {
         val careerUuids = careerIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val professorUuids = professorIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
         val projectTypes = projectTypeIds?.split(",")?.mapNotNull { type ->
             runCatching { ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType.valueOf(type.trim()) }.getOrNull()
         }
         
         return ResponseEntity.ok(
-            analyticsService.getCareerYearStats(careerUuids, projectTypes, fromYear, toYear)
+            analyticsService.getCareerYearStats(careerUuids, professorUuids, projectTypes, fromYear, toYear)
         )
     }
 
@@ -97,16 +101,20 @@ class AnalyticsController(
     fun getProjectTypeStats(
         @RequestParam(required = false) careerIds: String?,
         @RequestParam(required = false) professorIds: String?,
+        @RequestParam(required = false) projectTypeIds: String?,
         @RequestParam(required = false) fromYear: Int?,
         @RequestParam(required = false) toYear: Int?,
         @RequestParam(required = false) applicationDomainIds: String?,
     ): ResponseEntity<ProjectTypeStatsResponse> {
         val careerUuids = careerIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
         val professorUuids = professorIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val projectTypes = projectTypeIds?.split(",")?.mapNotNull { type ->
+            runCatching { ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType.valueOf(type.trim()) }.getOrNull()
+        }
         val domainUuids = applicationDomainIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
 
         return ResponseEntity.ok(
-            analyticsService.getProjectTypeStats(careerUuids, professorUuids, fromYear, toYear, domainUuids)
+            analyticsService.getProjectTypeStats(careerUuids, professorUuids, projectTypes, fromYear, toYear, domainUuids)
         )
     }
 
@@ -114,6 +122,7 @@ class AnalyticsController(
     fun getDashboardStats(
         @RequestParam(required = false) careerIds: String?,
         @RequestParam(required = false) professorIds: String?,
+        @RequestParam(required = false) projectTypeIds: String?,
         @RequestParam(required = false) fromYear: Int?,
         @RequestParam(required = false) toYear: Int?,
         @RequestParam(required = false) applicationDomainIds: String?,
@@ -121,10 +130,13 @@ class AnalyticsController(
     ): ResponseEntity<DashboardStatsResponse> {
         val careerUuids = careerIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
         val professorUuids = professorIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+        val projectTypes = projectTypeIds?.split(",")?.mapNotNull { type ->
+            runCatching { ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType.valueOf(type.trim()) }.getOrNull()
+        }
         val domainUuids = applicationDomainIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
 
         return ResponseEntity.ok(
-            analyticsService.getDashboardStats(careerUuids, professorUuids, fromYear, toYear, domainUuids, topK)
+            analyticsService.getDashboardStats(careerUuids, professorUuids, projectTypes, fromYear, toYear, domainUuids, topK)
         )
     }
 }

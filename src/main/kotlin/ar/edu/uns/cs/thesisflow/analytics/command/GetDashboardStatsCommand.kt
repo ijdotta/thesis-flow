@@ -16,6 +16,7 @@ class GetDashboardStatsCommand(
     fun execute(
         careerIds: List<UUID>? = null,
         professorIds: List<UUID>? = null,
+        projectTypes: List<ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
         applicationDomainIds: List<UUID>? = null,
@@ -25,6 +26,9 @@ class GetDashboardStatsCommand(
         val filteredProjects = allProjects
             .filter { project ->
                 careerIds == null || project.career?.publicId in careerIds
+            }
+            .filter { project ->
+                projectTypes == null || project.type in projectTypes
             }
             .filter { project ->
                 val projectYear = project.initialSubmission.year
