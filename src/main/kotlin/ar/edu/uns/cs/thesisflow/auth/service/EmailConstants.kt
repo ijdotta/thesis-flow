@@ -5,19 +5,15 @@ package ar.edu.uns.cs.thesisflow.auth.service
  */
 object EmailConstants {
     // Sender configuration
-    const val SENDER_EMAIL = "noreply@thesisflow.example.com"
+    const val SENDER_EMAIL = "noreply.thesisflow.dcic@gmail.com"
     const val APPLICATION_NAME = "Thesis Flow"
-    
-    // Gmail configuration
-    const val GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send"
     
     // Email subjects
     const val SUBJECT_PROFESSOR_LOGIN_LINK = "Tu enlace mágico para acceder a Thesis Flow"
     
     // Token configuration
     const val TOKEN_EXPIRY_MINUTES = 15
-    const val TOKEN_ONLY_ONCE = true
-    
+
     // Email template messages
     const val MESSAGE_GREETING = "Hola %s,"
     const val MESSAGE_REQUEST = "Solicitaste un enlace para acceder a Thesis Flow. Haz clic en el botón de abajo para iniciar sesión:"

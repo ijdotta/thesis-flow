@@ -7,12 +7,8 @@ import org.springframework.stereotype.Service
 /**
  * Email service for sending transactional emails.
  *
- * Delegates to a single [EmailSender] implementation that is selected at runtime
- * based on configuration. This allows transparent switching between:
- * - Gmail API (via GmailEmailSender)
- * - SMTP (via SpringMailEmailSender)
- *
- * The actual implementation selection is handled by [CompositeEmailSender].
+ * Delegates to a single [EmailSender] implementation (injected by Spring).
+ * Uses [EmailTemplateBuilder] for HTML email templates and [EmailConstants] for configuration.
  *
  * @param emailSender The email sender implementation (injected by Spring)
  */
