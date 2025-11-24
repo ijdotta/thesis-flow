@@ -24,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException
 class PersonController(
     val personService: PersonService
 ) {
-    private val allowedParams = setOf("page", "size", "sort", "lastname", "name")
+    private val allowedParams = setOf("page", "size", "sort", "lastname", "name", "q")
     private val sortableFields = mapOf(
         "lastname" to "lastname",
         "name" to "name"
@@ -37,12 +37,14 @@ class PersonController(
         @RequestParam(required = false, defaultValue = "25") size: Int,
         @RequestParam(required = false) lastname: String?,
         @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) q: String?,
         @RequestParam(required = false) sort: String?,
     ): ResponseEntity<*> {
         validateParams(allParams.keys)
         val filter = PersonFilter(
             lastname = lastname?.takeIf { it.isNotBlank() },
             name = name?.takeIf { it.isNotBlank() },
+            q = q?.takeIf { it.isNotBlank() },
         )
         val pageable = PageRequest.of(page, size, sort.toSort())
         return ResponseEntity.ok(

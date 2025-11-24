@@ -74,6 +74,7 @@ data class ProjectBackupDto(
     val title: String,
     val description: String?,
     val type: String, // ProjectType enum name
+    val initialSubmission: LocalDate?,
     val completion: LocalDate?,
     val careerPublicId: UUID?, // Reference to Career
     val applicationDomainPublicId: UUID?, // Reference to ApplicationDomain

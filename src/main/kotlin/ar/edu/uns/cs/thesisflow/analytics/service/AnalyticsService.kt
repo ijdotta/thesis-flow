@@ -29,11 +29,12 @@ class AnalyticsService(
 
     fun getTopicHeatmap(
         careerIds: List<UUID>? = null,
+        professorIds: List<UUID>? = null,
         projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): TopicHeatmapResponse {
-        return getTopicHeatmapCommand.execute(careerIds, projectTypes, fromYear, toYear)
+        return getTopicHeatmapCommand.execute(careerIds, professorIds, projectTypes, fromYear, toYear)
     }
 
     fun getProfessorNetwork(
@@ -48,11 +49,12 @@ class AnalyticsService(
 
     fun getCareerYearStats(
         careerIds: List<UUID>? = null,
+        professorIds: List<UUID>? = null,
         projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
     ): CareerYearStatsResponse {
-        return getCareerYearStatsCommand.execute(careerIds, projectTypes, fromYear, toYear)
+        return getCareerYearStatsCommand.execute(careerIds, professorIds, projectTypes, fromYear, toYear)
     }
 
     fun getFilters(): FiltersResponse {
@@ -62,21 +64,23 @@ class AnalyticsService(
     fun getProjectTypeStats(
         careerIds: List<UUID>? = null,
         professorIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
         applicationDomainIds: List<UUID>? = null,
     ): ProjectTypeStatsResponse {
-        return getProjectTypeStatsCommand.execute(careerIds, professorIds, fromYear, toYear, applicationDomainIds)
+        return getProjectTypeStatsCommand.execute(careerIds, professorIds, projectTypes, fromYear, toYear, applicationDomainIds)
     }
 
     fun getDashboardStats(
         careerIds: List<UUID>? = null,
         professorIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
         applicationDomainIds: List<UUID>? = null,
         topK: Int = 10,
     ): DashboardStatsResponse {
-        return getDashboardStatsCommand.execute(careerIds, professorIds, fromYear, toYear, applicationDomainIds, topK)
+        return getDashboardStatsCommand.execute(careerIds, professorIds, projectTypes, fromYear, toYear, applicationDomainIds, topK)
     }
 }

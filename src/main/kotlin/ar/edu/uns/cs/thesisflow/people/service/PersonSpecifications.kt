@@ -7,9 +7,10 @@ import org.springframework.data.jpa.domain.Specification
 data class PersonFilter(
     val lastname: String? = null,
     val name: String? = null,
+    val q: String? = null,
 ) {
     companion object { fun empty() = PersonFilter() }
-    val isEmpty: Boolean get() = lastname == null && name == null
+    val isEmpty: Boolean get() = lastname == null && name == null && q == null
 }
 
 object PersonSpecifications {
@@ -26,6 +27,13 @@ object PersonSpecifications {
             filter.name?.takeIf { it.isNotBlank() }?.let { n ->
                 val pattern = "%${n.lowercase()}%"
                 predicates += cb.like(cb.lower(root.get("name")), pattern)
+            }
+
+            filter.q?.takeIf { it.isNotBlank() }?.let { query ->
+                val pattern = "%${query.lowercase()}%"
+                val nameMatch = cb.like(cb.lower(root.get("name")), pattern)
+                val lastnameMatch = cb.like(cb.lower(root.get("lastname")), pattern)
+                predicates += cb.or(nameMatch, lastnameMatch)
             }
 
             cb.and(*predicates.toTypedArray())

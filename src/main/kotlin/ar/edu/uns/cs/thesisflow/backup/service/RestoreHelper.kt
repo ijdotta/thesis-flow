@@ -214,7 +214,12 @@ class RestoreHelper(
             val project = Project(dto.title, projectType)
             project.career = career
             project.applicationDomain = domain
-            project.completion = dto.completion
+            if (dto.initialSubmission != null) {
+                project.initialSubmission = dto.initialSubmission
+            }
+            if (dto.completion != null) {
+                project.completion = dto.completion
+            }
             project.resources = dto.resources
             setEntityId(project, dto.id)
             setEntityPublicId(project, dto.publicId)

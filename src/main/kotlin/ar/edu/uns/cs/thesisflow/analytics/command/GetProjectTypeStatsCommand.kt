@@ -15,6 +15,7 @@ class GetProjectTypeStatsCommand(
     fun execute(
         careerIds: List<UUID>? = null,
         professorIds: List<UUID>? = null,
+        projectTypes: List<ProjectType>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
         applicationDomainIds: List<UUID>? = null,
@@ -22,6 +23,9 @@ class GetProjectTypeStatsCommand(
         val filteredProjects = projectRepository.findAll()
             .filter { project ->
                 careerIds == null || project.career?.publicId in careerIds
+            }
+            .filter { project ->
+                projectTypes == null || project.type in projectTypes
             }
             .filter { project ->
                 val projectYear = project.initialSubmission.year
