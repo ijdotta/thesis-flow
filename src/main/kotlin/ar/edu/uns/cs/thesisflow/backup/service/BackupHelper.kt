@@ -65,6 +65,7 @@ class BackupHelper(private val entityManager: EntityManager) {
                 it.title, 
                 null,
                 it.type.name,
+                it.initialSubmission,
                 it.completion,
                 it.career?.publicId,
                 it.applicationDomain?.publicId,
