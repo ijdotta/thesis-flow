@@ -49,7 +49,7 @@ class GmailEmailSender(
         try {
             val credentials = GoogleCredentials
                 .fromStream(FileInputStream(credentialsPath))
-                .createScoped(listOf("https://www.googleapis.com/auth/gmail.send"))
+                .createScoped(listOf(EmailConstants.GMAIL_SEND_SCOPE))
 
             // Force token refresh to validate credentials
             credentials.refresh()
@@ -128,7 +128,7 @@ class GmailEmailSender(
         val session = Session.getDefaultInstance(properties, null)
         val email = MimeMessage(session)
 
-        email.setFrom(InternetAddress("noreply@thesisflow.example.com"))
+        email.setFrom(InternetAddress(EmailConstants.SENDER_EMAIL))
         email.addRecipient(jakarta.mail.Message.RecipientType.TO, InternetAddress(to))
         email.subject = subject
         email.setText(htmlBody, "UTF-8", "html")

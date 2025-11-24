@@ -39,7 +39,7 @@ class SpringMailEmailSender(
             helper.setTo(to)
             helper.setSubject(subject)
             helper.setText(htmlBody, true)
-            helper.setFrom("noreply@thesisflow.example.com")
+            helper.setFrom(EmailConstants.SENDER_EMAIL)
 
             mailSender.send(message)
             logger.info("Email sent via Spring Mail to: $to")
