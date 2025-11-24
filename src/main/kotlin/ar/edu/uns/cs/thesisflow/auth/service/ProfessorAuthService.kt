@@ -98,6 +98,9 @@ class ProfessorAuthService(
                 professor = professor
             )
             authUser = authUserRepository.save(authUser)
+        } else if (authUser.professor == null) {
+            // If authUser exists but professor wasn't loaded, set it
+            authUser.professor = professor
         }
         
         val principal = AuthUserPrincipal.from(authUser)
