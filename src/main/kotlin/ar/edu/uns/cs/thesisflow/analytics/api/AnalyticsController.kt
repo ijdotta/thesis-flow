@@ -139,4 +139,16 @@ class AnalyticsController(
             analyticsService.getDashboardStats(careerUuids, professorUuids, projectTypes, fromYear, toYear, domainUuids, topK)
         )
     }
+
+    @GetMapping("/professor/stats")
+    fun getProfessorStats(
+        @RequestParam(required = false) professorIds: String?,
+        @RequestParam(required = false, defaultValue = "10") topK: Int,
+    ): ResponseEntity<DashboardStatsResponse> {
+        val professorUuids = professorIds?.split(",")?.mapNotNull { runCatching { UUID.fromString(it.trim()) }.getOrNull() }
+
+        return ResponseEntity.ok(
+            analyticsService.getProfessorStats(professorUuids, topK)
+        )
+    }
 }

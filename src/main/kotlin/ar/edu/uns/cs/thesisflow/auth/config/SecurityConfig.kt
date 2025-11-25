@@ -43,6 +43,10 @@ class SecurityConfig(
                     .requestMatchers("/analytics/**").permitAll()
                     .requestMatchers("/projects/public/**").permitAll()
 
+                    // Authenticated endpoints
+                    .requestMatchers("/auth/reset-password").authenticated()
+                    .requestMatchers("/auth/me").authenticated()
+
                     // Read access for domain-related entities (PROFESSOR can read)
                     .requestMatchers(HttpMethod.GET, "/tags/**").hasAnyRole("ADMIN", "PROFESSOR")
                     .requestMatchers(HttpMethod.GET, "/careers/**").hasAnyRole("ADMIN", "PROFESSOR")
@@ -68,6 +72,9 @@ class SecurityConfig(
 
                     // Backup endpoints - ADMIN only
                     .requestMatchers("/backup/**").hasRole("ADMIN")
+
+                    // Export endpoints - ADMIN and PROFESSOR
+                    .requestMatchers("/export/**").hasAnyRole("ADMIN", "PROFESSOR")
 
                     // Everything else requires ADMIN
                     .anyRequest().hasRole("ADMIN")
