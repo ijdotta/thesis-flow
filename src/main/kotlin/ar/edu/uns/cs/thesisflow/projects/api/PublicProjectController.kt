@@ -54,13 +54,17 @@ class PublicProjectController(
                 (toYear == null || projectYear <= toYear)
             }
             .filter { project ->
-                search == null || 
-                project.title.contains(search, ignoreCase = true) ||
-                project.tags.any { tag -> tag.name.contains(search, ignoreCase = true) } ||
-                project.participants.any { participant -> 
-                    "${participant.person.name} ${participant.person.lastname}".contains(search, ignoreCase = true) ||
-                    participant.person.name.contains(search, ignoreCase = true) ||
-                    participant.person.lastname.contains(search, ignoreCase = true)
+                search == null || search.isEmpty() ||
+                search.split(";").all { criterion ->
+                    val term = criterion.trim()
+                    term.isEmpty() ||
+                    project.title.contains(term, ignoreCase = true) ||
+                    project.tags.any { tag -> tag.name.contains(term, ignoreCase = true) } ||
+                    project.participants.any { participant -> 
+                        "${participant.person.name} ${participant.person.lastname}".contains(term, ignoreCase = true) ||
+                        participant.person.name.contains(term, ignoreCase = true) ||
+                        participant.person.lastname.contains(term, ignoreCase = true)
+                    }
                 }
             }
 
