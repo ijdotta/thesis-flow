@@ -56,7 +56,12 @@ class PublicProjectController(
             .filter { project ->
                 search == null || 
                 project.title.contains(search, ignoreCase = true) ||
-                project.tags.any { tag -> tag.name.contains(search, ignoreCase = true) }
+                project.tags.any { tag -> tag.name.contains(search, ignoreCase = true) } ||
+                project.participants.any { participant -> 
+                    "${participant.person.name} ${participant.person.lastname}".contains(search, ignoreCase = true) ||
+                    participant.person.name.contains(search, ignoreCase = true) ||
+                    participant.person.lastname.contains(search, ignoreCase = true)
+                }
             }
 
         val total = allProjects.size
