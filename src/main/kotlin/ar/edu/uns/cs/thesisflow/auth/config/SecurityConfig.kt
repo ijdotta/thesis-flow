@@ -43,6 +43,9 @@ class SecurityConfig(
                     .requestMatchers("/analytics/**").permitAll()
                     .requestMatchers("/projects/public/**").permitAll()
 
+                    // Authenticated endpoints
+                    .requestMatchers("/auth/reset-password").authenticated()
+
                     // Read access for domain-related entities (PROFESSOR can read)
                     .requestMatchers(HttpMethod.GET, "/tags/**").hasAnyRole("ADMIN", "PROFESSOR")
                     .requestMatchers(HttpMethod.GET, "/careers/**").hasAnyRole("ADMIN", "PROFESSOR")
