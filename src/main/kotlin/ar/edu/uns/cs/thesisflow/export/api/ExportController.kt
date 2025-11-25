@@ -20,7 +20,7 @@ class ExportController(
 ) {
 
     @GetMapping("/projects")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     fun exportProjects(
         @RequestParam(required = false) careerIds: String?,
         @RequestParam(required = false) applicationDomainIds: String?,
