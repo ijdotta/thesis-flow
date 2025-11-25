@@ -3,6 +3,7 @@ package ar.edu.uns.cs.thesisflow.analytics.service
 import ar.edu.uns.cs.thesisflow.analytics.command.*
 import ar.edu.uns.cs.thesisflow.analytics.dto.*
 import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ProjectType
+import ar.edu.uns.cs.thesisflow.projects.persistance.entity.ParticipantRole
 import ar.edu.uns.cs.thesisflow.projects.persistance.repository.ProjectRepository
 import org.springframework.stereotype.Service
 import java.util.*
@@ -101,7 +102,10 @@ class AnalyticsService(
 
         val allProjects = projectRepository.findAll()
         val filteredProjects = allProjects.filter { project ->
-            project.participants.any { it.person.publicId in professorIds }
+            project.participants.any { 
+                it.person.publicId in professorIds && 
+                it.participantRole in setOf(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR, ParticipantRole.COLLABORATOR)
+            }
         }
 
         val overview = OverviewStats(
@@ -111,6 +115,7 @@ class AnalyticsService(
             uniqueTags = filteredProjects.flatMap { it.tags }.map { it.publicId }.distinct().size,
             uniqueProfessors = filteredProjects
                 .flatMap { it.participants }
+                .filter { it.participantRole in setOf(ParticipantRole.DIRECTOR, ParticipantRole.CO_DIRECTOR, ParticipantRole.COLLABORATOR) }
                 .map { it.person.publicId }
                 .distinct()
                 .size,
