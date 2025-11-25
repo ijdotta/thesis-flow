@@ -2,6 +2,7 @@ package ar.edu.uns.cs.thesisflow.projects.persistance.entity
 
 import ar.edu.uns.cs.thesisflow.catalog.persistance.entity.Career
 import ar.edu.uns.cs.thesisflow.common.persistence.BaseEntity
+import ar.edu.uns.cs.thesisflow.projects.dto.ProjectResource
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection
@@ -17,6 +18,8 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.EntityListeners
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -55,8 +58,9 @@ class Project(
     var tags: MutableSet<Tag> = mutableSetOf(),
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     var participants: MutableSet<ProjectParticipant> = mutableSetOf(),
-    @Column(nullable = false)
-    var resources: String = "[]",
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false, columnDefinition = "jsonb")
+    var resources: List<ProjectResource> = emptyList(),
 ) : BaseEntity() {
     @CreatedDate
     @Column(nullable = false, updatable = false)

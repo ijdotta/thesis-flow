@@ -54,19 +54,7 @@ fun Project.toDTO(participantDTOs: List<ParticipantDTO> = listOf()) = ProjectDTO
     applicationDomainDTO = applicationDomain?.toDTO(),
     tags = tags.map { it.toDTO() },
     participants = participantDTOs,
-    resources = parseResources(this.resources)
+    resources = resources
 )
 
-private val resourcesObjectMapper: ObjectMapper by lazy { jacksonObjectMapper() }
 
-private fun parseResources(resourcesJson: String?): List<ProjectResource> {
-    if (resourcesJson.isNullOrBlank()) {
-        return emptyList()
-    }
-    return try {
-        resourcesObjectMapper.readValue(resourcesJson, Array<ProjectResource>::class.java).toList()
-    } catch (e: Exception) {
-        // Log the error but don't crash - return empty list
-        emptyList()
-    }
-}

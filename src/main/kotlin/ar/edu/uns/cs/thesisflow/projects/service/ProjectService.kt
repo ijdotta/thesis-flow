@@ -222,7 +222,7 @@ class ProjectService(
         val resources = requests.map { 
             ProjectResource(url = it.url, title = it.title, description = it.description) 
         }
-        entity.resources = objectMapper.writeValueAsString(resources)
+        entity.resources = resources
         
         return projectRepository.save(entity).withEnrichedParticipants()
     }
@@ -256,14 +256,6 @@ class ProjectService(
             protocol == "http" || protocol == "https"
         } catch (e: Exception) {
             false
-        }
-    }
-
-    private fun parseResources(resourcesJson: String): List<ProjectResource> {
-        return try {
-            objectMapper.readValue(resourcesJson, Array<ProjectResource>::class.java).toList()
-        } catch (e: Exception) {
-            emptyList()
         }
     }
 }
