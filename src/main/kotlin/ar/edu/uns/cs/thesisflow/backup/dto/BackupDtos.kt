@@ -1,5 +1,6 @@
 package ar.edu.uns.cs.thesisflow.backup.dto
 
+import ar.edu.uns.cs.thesisflow.projects.dto.ProjectResource
 import java.time.LocalDate
 import java.util.UUID
 
@@ -78,7 +79,7 @@ data class ProjectBackupDto(
     val completion: LocalDate?,
     val careerPublicId: UUID?, // Reference to Career
     val applicationDomainPublicId: UUID?, // Reference to ApplicationDomain
-    val resources: String = "[]", // JSON string of resources
+    val resources: List<ProjectResource> = emptyList(), // List of project resources
 )
 
 data class ProjectParticipantBackupDto(

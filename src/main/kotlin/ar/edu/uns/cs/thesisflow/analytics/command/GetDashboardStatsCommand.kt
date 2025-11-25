@@ -58,7 +58,7 @@ class GetDashboardStatsCommand(
                 .distinct()
                 .size,
             projectsWithAccessibleUrl = filteredProjects.count { 
-                it.resources != null && it.resources.trim() != "[]" && it.resources.trim().isNotEmpty()
+                it.resources.isNotEmpty()
             }
         )
 
