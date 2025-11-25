@@ -45,24 +45,22 @@ class AuthController(
     @GetMapping("/me")
     fun getCurrentUser(): ResponseEntity<CurrentUserResponse> {
         val currentUser = currentUserService.requireCurrentUser()
-        val userId = currentUser.getId() ?: throw IllegalStateException("User ID not found")
-        val username = currentUser.getUsername()
         val role = currentUser.role
 
-        val (name, email) = if (role == UserRole.PROFESSOR) {
-            val professor = professorRepository.findById(userId)
-                .orElseThrow { IllegalStateException("Professor not found") }
+        val (name, email) = if (role == UserRole.PROFESSOR && currentUser.professorPublicId != null) {
+            val professor = professorRepository.findByPublicId(currentUser.professorPublicId)
+                ?: throw IllegalStateException("Professor not found")
             Pair(
                 "${professor.person.name} ${professor.person.lastname}",
                 professor.email
             )
         } else {
-            Pair("Admin User", null)
+            Pair("Admin", null)
         }
 
         return ResponseEntity.ok(CurrentUserResponse(
             id = currentUser.publicId.toString(),
-            username = username,
+            username = currentUser.getUsername(),
             role = role.name,
             name = name,
             email = email,
