@@ -73,6 +73,9 @@ class SecurityConfig(
                     // Backup endpoints - ADMIN only
                     .requestMatchers("/backup/**").hasRole("ADMIN")
 
+                    // Export endpoints - ADMIN only
+                    .requestMatchers("/export/**").hasRole("ADMIN")
+
                     // Everything else requires ADMIN
                     .anyRequest().hasRole("ADMIN")
             }
