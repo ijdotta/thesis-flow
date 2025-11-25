@@ -47,9 +47,11 @@ class AuthController(
         val currentUser = currentUserService.requireCurrentUser()
         val role = currentUser.role
 
+        var userId = currentUser.publicId.toString()
         val (name, email) = if (role == UserRole.PROFESSOR && currentUser.professorPublicId != null) {
             val professor = professorRepository.findByPublicId(currentUser.professorPublicId)
                 ?: throw IllegalStateException("Professor not found")
+            userId = professor.person.publicId.toString()
             Pair(
                 "${professor.person.name} ${professor.person.lastname}",
                 professor.email
@@ -59,7 +61,7 @@ class AuthController(
         }
 
         return ResponseEntity.ok(CurrentUserResponse(
-            id = currentUser.publicId.toString(),
+            id = userId,
             username = currentUser.getUsername(),
             role = role.name,
             name = name,
