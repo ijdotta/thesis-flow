@@ -84,6 +84,7 @@ class ProjectService(
         return projectRepository.save(entity).toDTO()
     }
 
+    @Transactional
     fun delete(id: String) {
         val project = findEntityByPublicId(id)
         projectParticipantRepository.deleteAllByProject(project)
